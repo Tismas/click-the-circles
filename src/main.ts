@@ -4,23 +4,30 @@ import { RenderSystem } from "./systems/RenderSystem";
 import { ClickSystem } from "./systems/ClickSystem";
 import { FloatingTextSystem } from "./systems/FloatingTextSystem";
 import { HudSystem } from "./systems/HudSystem";
+import { CircleLifecycleSystem } from "./systems/CircleLifecycleSystem";
 import { createEntity } from "./ecs/Entity";
 import { addComponent } from "./ecs/Component";
+import { getRandomCirclePosition } from "./utils/spawn";
 
 const game = new Game();
 
 game.addSystem(new ClickSystem(game));
+game.addSystem(new CircleLifecycleSystem(game));
 game.addSystem(new RenderSystem(game));
 game.addSystem(new HudSystem(game));
 game.addSystem(new FloatingTextSystem(game));
 
+const circleRadius = 60;
+const initialPos = getRandomCirclePosition(
+  game.canvas.width,
+  game.canvas.height,
+  circleRadius
+);
+
 const testCircle = createEntity();
-addComponent(testCircle, "position", {
-  x: game.canvas.width / 2,
-  y: game.canvas.height / 2,
-});
+addComponent(testCircle, "position", initialPos);
 addComponent(testCircle, "circle", {
-  radius: 60,
+  radius: circleRadius,
   color: "#ff6b6b",
   outlineColor: "#ffffff",
   outlineWidth: 4,
