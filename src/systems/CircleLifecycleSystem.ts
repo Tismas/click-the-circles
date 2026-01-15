@@ -3,6 +3,7 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { getRandomCirclePosition } from "../utils/spawn";
+import { getUpgradeLevel } from "../game/Upgrades";
 
 export class CircleLifecycleSystem extends System {
   update(_dt: number): void {
@@ -20,14 +21,19 @@ export class CircleLifecycleSystem extends System {
       if (!health || !pos) continue;
 
       if (health.current <= 0) {
-        const bonusMoney = health.max;
-        gameState.money += bonusMoney;
-        spawnFloatingText(
-          pos.x,
-          pos.y - 40,
-          `+$${Math.floor(bonusMoney)} BONUS!`,
-          "#00ff88"
-        );
+        const killBonusLevel = getUpgradeLevel("killBonus");
+        const bonusPercent = killBonusLevel * 0.1;
+        const bonusMoney = Math.floor(health.max * bonusPercent);
+        
+        if (bonusMoney > 0) {
+          gameState.money += bonusMoney;
+          spawnFloatingText(
+            pos.x,
+            pos.y - 40,
+            `+$${bonusMoney} BONUS!`,
+            "#00ff88"
+          );
+        }
 
         const newMax = Math.floor(health.max * 1.1);
         health.max = newMax;

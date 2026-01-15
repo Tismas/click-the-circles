@@ -2,6 +2,7 @@ import { gameState } from "./GameState";
 
 export type UpgradeId =
   | "clickDamage"
+  | "killBonus"
   | "clickRadius"
   | "moreCircles"
   | "whiteBall"
@@ -65,7 +66,10 @@ export function canAffordUpgrade(id: UpgradeId, money: number): boolean {
   return money >= getUpgradeCost(id);
 }
 
-export function purchaseUpgrade(id: UpgradeId, money: number): { success: boolean; cost: number } {
+export function purchaseUpgrade(
+  id: UpgradeId,
+  money: number
+): { success: boolean; cost: number } {
   const def = upgradeDefinitions.find((u) => u.id === id);
   if (!def) return { success: false, cost: 0 };
 
@@ -99,13 +103,24 @@ const upgradeInputs: UpgradeInput[] = [
     name: "Click Damage",
     description: "Increases click damage by 1",
     icon: "👆",
-    maxLevel: 10,
+    maxLevel: 5,
     baseCost: 20,
     branch: "right",
     unlockCondition: () => true,
     onPurchase: () => {
       gameState.clickDamage += 1;
     },
+  },
+  {
+    id: "killBonus",
+    name: "Kill Bonus",
+    description: "Gain 10% of circle max HP as bonus on kill",
+    icon: "💀",
+    maxLevel: 10,
+    baseCost: 500,
+    branch: "right",
+    parent: "clickDamage",
+    unlockCondition: () => getUpgradeLevel("clickDamage") >= 1,
   },
   {
     id: "clickRadius",
