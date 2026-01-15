@@ -3,25 +3,37 @@ import {
   getAllUpgradeLevels,
   setAllUpgradeLevels,
   getUpgradeLevel,
-  type UpgradeId,
 } from "./Upgrades";
-import { spawnCircle, spawnBall } from "../utils/spawn";
+import { spawnCircleWithHealth, spawnBall } from "../utils/spawn";
+import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { game } from "./gameInstance";
+import {
+  CURRENT_SAVE_VERSION,
+  migrateSaveData,
+  type SaveData,
+  type CircleHealth,
+} from "./SaveMigrations";
 
 const SAVE_KEY = "click-the-circles-save";
-const SAVE_VERSION = 3;
 
-interface SaveData {
-  version: number;
-  money: number;
-  upgradeLevels: Record<UpgradeId, number>;
+function getCircleHealths(): CircleHealth[] {
+  const circles = getEntitiesWithComponents("circle", "health");
+  const healths: CircleHealth[] = [];
+  for (const entity of circles) {
+    const health = getComponent(entity, "health");
+    if (health) {
+      healths.push({ current: health.current, max: health.max });
+    }
+  }
+  return healths;
 }
 
 export function saveGame(): void {
   const saveData: SaveData = {
-    version: SAVE_VERSION,
+    version: CURRENT_SAVE_VERSION,
     money: gameState.money,
     upgradeLevels: getAllUpgradeLevels(),
+    circleHealths: getCircleHealths(),
   };
 
   try {
@@ -36,16 +48,17 @@ export function loadGame(): boolean {
     const saved = localStorage.getItem(SAVE_KEY);
     if (!saved) return false;
 
-    const saveData: SaveData = JSON.parse(saved);
+    const rawData = JSON.parse(saved);
+    const saveData = migrateSaveData(rawData);
 
-    if (saveData.version !== SAVE_VERSION) {
-      console.warn("Save version mismatch, starting fresh");
+    if (!saveData) {
+      console.warn("Could not migrate save data, starting fresh");
       return false;
     }
 
     gameState.money = saveData.money;
     setAllUpgradeLevels(saveData.upgradeLevels);
-    spawnEntities();
+    spawnEntitiesFromSave(saveData.circleHealths);
 
     return true;
   } catch (e) {
@@ -54,12 +67,28 @@ export function loadGame(): boolean {
   }
 }
 
+function spawnEntitiesFromSave(circleHealths: CircleHealth[]): void {
+  const ballCount = getUpgradeLevel("whiteBall");
+
+  for (const health of circleHealths) {
+    spawnCircleWithHealth(
+      game.canvas.width,
+      game.canvas.height,
+      health.current,
+      health.max
+    );
+  }
+  for (let i = 0; i < ballCount; i++) {
+    spawnBall(game.canvas.width, game.canvas.height);
+  }
+}
+
 export function spawnEntities(): void {
   const circleCount = 1 + getUpgradeLevel("moreCircles");
   const ballCount = getUpgradeLevel("whiteBall");
 
   for (let i = 0; i < circleCount; i++) {
-    spawnCircle(game.canvas.width, game.canvas.height);
+    spawnCircleWithHealth(game.canvas.width, game.canvas.height, 10, 10);
   }
   for (let i = 0; i < ballCount; i++) {
     spawnBall(game.canvas.width, game.canvas.height);

@@ -30,6 +30,15 @@ const CIRCLE_COLORS = [
 ] as const;
 
 export function spawnCircle(canvasWidth: number, canvasHeight: number): void {
+  spawnCircleWithHealth(canvasWidth, canvasHeight, 10, 10);
+}
+
+export function spawnCircleWithHealth(
+  canvasWidth: number,
+  canvasHeight: number,
+  current: number,
+  max: number
+): void {
   const radius = 60;
   const pos = getRandomCirclePosition(canvasWidth, canvasHeight, radius);
   const color = randomElement(CIRCLE_COLORS);
@@ -43,8 +52,8 @@ export function spawnCircle(canvasWidth: number, canvasHeight: number): void {
     outlineWidth: 4,
   });
   addComponent(entity, "health", {
-    current: 10,
-    max: 10,
+    current,
+    max,
   });
   addComponent(entity, "clickable", {
     radius,

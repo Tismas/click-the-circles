@@ -57,7 +57,7 @@ export function getBallDamage(): number {
 }
 
 export function getBallSpeedMulti(): number {
-  return 1 + getUpgradeLevel("ballSpeed") * 0.05;
+  return 1 + getUpgradeLevel("ballSpeed") * 10;
 }
 
 export function isUpgradeMaxed(id: UpgradeId): boolean {
