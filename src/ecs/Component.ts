@@ -38,7 +38,6 @@ export interface Clickable {
 
 export interface Ball {
   damage: number;
-  collisionCooldown: number;
 }
 
 type ComponentMap = {

@@ -7,6 +7,8 @@ import { HudSystem } from "./systems/HudSystem";
 import { CircleLifecycleSystem } from "./systems/CircleLifecycleSystem";
 import { ShopSystem } from "./systems/ShopSystem";
 import { PassiveIncomeSystem } from "./systems/PassiveIncomeSystem";
+import { MovementSystem } from "./systems/MovementSystem";
+import { CollisionSystem } from "./systems/CollisionSystem";
 import { initializeUpgrades } from "./game/Upgrades";
 import { spawnCircle } from "./utils/spawn";
 
@@ -19,6 +21,8 @@ shopSystem.setClickSystem(clickSystem);
 game.addSystem(clickSystem);
 game.addSystem(new CircleLifecycleSystem(game));
 game.addSystem(new PassiveIncomeSystem(game));
+game.addSystem(new MovementSystem(game));
+game.addSystem(new CollisionSystem(game));
 game.addSystem(new RenderSystem(game));
 game.addSystem(new HudSystem(game));
 game.addSystem(new FloatingTextSystem(game));

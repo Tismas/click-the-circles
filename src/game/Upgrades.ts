@@ -1,6 +1,6 @@
 import { gameState } from "./GameState";
 import { game } from "./gameInstance";
-import { spawnCircle } from "../utils/spawn";
+import { spawnCircle, spawnBall } from "../utils/spawn";
 
 export type UpgradeId =
   | "clickDamage"
@@ -156,6 +156,9 @@ const upgradeInputs: UpgradeInput[] = [
     maxLevel: 1,
     baseCost: 1000,
     branch: "left",
+    onPurchase: () => {
+      spawnBall(game.canvas.width, game.canvas.height);
+    },
   },
   {
     id: "ballDamage",
@@ -166,6 +169,9 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 100,
     branch: "left",
     parent: "whiteBall",
+    onPurchase: () => {
+      gameState.ballDamage += 1;
+    },
   },
   {
     id: "ballSpeed",
@@ -176,6 +182,9 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 100,
     branch: "left",
     parent: "whiteBall",
+    onPurchase: () => {
+      gameState.ballSpeedMulti += 0.05;
+    },
   },
   {
     id: "miningDrone",

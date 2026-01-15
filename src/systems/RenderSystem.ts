@@ -1,10 +1,18 @@
 import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
+import { getHealthScale } from "../utils/healthScale";
+
+const BALL_RADIUS = 15;
 
 export class RenderSystem extends System {
   render(): void {
     const ctx = this.game.ctx;
 
+    this.renderCircles(ctx);
+    this.renderBalls(ctx);
+  }
+
+  private renderCircles(ctx: CanvasRenderingContext2D): void {
     const entities = getEntitiesWithComponents("position", "circle");
 
     for (const entity of entities) {
@@ -14,15 +22,8 @@ export class RenderSystem extends System {
       if (!pos || !circle) continue;
 
       const health = getComponent(entity, "health");
-      let displayRadius = circle.radius;
-
-      if (health) {
-        const healthPercent = health.current / health.max;
-        const minScale = 0.4;
-        const maxScale = 1.0;
-        const scale = minScale + healthPercent * (maxScale - minScale);
-        displayRadius = circle.radius * scale;
-      }
+      const scale = getHealthScale(health);
+      const displayRadius = circle.radius * scale;
 
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, displayRadius, 0, Math.PI * 2);
@@ -43,6 +44,25 @@ export class RenderSystem extends System {
         ctx.textBaseline = "middle";
         ctx.fillText(Math.ceil(health.current).toString(), pos.x, pos.y);
       }
+    }
+  }
+
+  private renderBalls(ctx: CanvasRenderingContext2D): void {
+    const balls = getEntitiesWithComponents("position", "ball");
+
+    for (const entity of balls) {
+      const pos = getComponent(entity, "position");
+      if (!pos) continue;
+
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#dddddd";
+      ctx.stroke();
     }
   }
 }

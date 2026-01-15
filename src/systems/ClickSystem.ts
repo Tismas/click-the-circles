@@ -5,6 +5,7 @@ import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { getUpgradeLevel } from "../game/Upgrades";
+import { getHealthScale } from "../utils/healthScale";
 
 export class ClickSystem extends System {
   private hasClick: boolean = false;
@@ -90,11 +91,14 @@ export class ClickSystem extends System {
 
       if (!pos || !clickable) continue;
 
+      const health = getComponent(entity, "health");
+      const effectiveRadius = clickable.radius * getHealthScale(health);
+
       const dx = x - pos.x;
       const dy = y - pos.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance <= clickable.radius + clickRadius) {
+      if (distance <= effectiveRadius + clickRadius) {
         clicked.push(entity);
       }
     }
