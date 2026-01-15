@@ -18,6 +18,7 @@ import { soundManager } from "../audio/SoundManager";
 import { saveGame, clearSaveData, spawnEntities } from "../game/SaveManager";
 import { clearAllEntities } from "../ecs/Component";
 import { eventBus } from "../events/EventBus";
+import { formatMoney } from "../utils/format";
 
 const TILE_SIZE = 64;
 const TILE_GAP = 80;
@@ -640,7 +641,7 @@ export class ShopSystem extends System {
       ctx.fillStyle = "#22c55e";
       ctx.fillText("MAXED", tooltipX + padding, y);
     } else {
-      ctx.fillText(`Cost: $${getUpgradeCost(def.id)}`, tooltipX + padding, y);
+      ctx.fillText(`Cost: ${formatMoney(getUpgradeCost(def.id))}`, tooltipX + padding, y);
     }
   }
 

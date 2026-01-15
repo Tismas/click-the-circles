@@ -1,6 +1,7 @@
 import { System } from "../ecs/System";
 import type { Game } from "../game/Game";
 import { eventBus } from "../events/EventBus";
+import { formatMoney } from "../utils/format";
 
 interface FloatingText {
   x: number;
@@ -52,14 +53,14 @@ export class FloatingTextSystem extends System {
   constructor(game: Game) {
     super(game);
     eventBus.on("circleClicked", ({ circleX, circleY, damage }) => {
-      spawnFloatingText(circleX, circleY, `+$${damage}`, "#ffd700");
+      spawnFloatingText(circleX, circleY, `+${formatMoney(damage)}`, "#ffd700");
     });
     eventBus.on("circleCollided", ({ circleX, circleY, circleRadius, damage }) => {
-      spawnFloatingText(circleX, circleY - circleRadius - 10, `+$${damage}`, "#ffdd44");
+      spawnFloatingText(circleX, circleY - circleRadius - 10, `+${formatMoney(damage)}`, "#ffdd44");
     });
     eventBus.on("circleKilled", ({ x, y, bonusMoney }) => {
       if (bonusMoney > 0) {
-        spawnFloatingText(x, y - 40, `+$${bonusMoney} BONUS!`, "#00ff88");
+        spawnFloatingText(x, y - 40, `+${formatMoney(bonusMoney)} BONUS!`, "#00ff88");
       }
     });
   }

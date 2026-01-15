@@ -2,6 +2,7 @@ import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { BallType } from "../ecs/Component";
 import { getHealthScale } from "../utils/healthScale";
+import { formatNumber } from "../utils/format";
 
 const BALL_RADIUS = 15;
 
@@ -110,7 +111,7 @@ export class RenderSystem extends System {
         ctx.textBaseline = "middle";
         ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
         ctx.shadowBlur = 4;
-        ctx.fillText(Math.ceil(health.current).toString(), pos.x, pos.y);
+        ctx.fillText(formatNumber(health.current), pos.x, pos.y);
         ctx.shadowBlur = 0;
       }
     }

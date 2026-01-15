@@ -1,5 +1,6 @@
 import { System } from "../ecs/System";
 import { gameState } from "../game/GameState";
+import { formatMoney } from "../utils/format";
 
 export class HudSystem extends System {
   render(): void {
@@ -10,7 +11,7 @@ export class HudSystem extends System {
     ctx.textAlign = "right";
     ctx.textBaseline = "top";
 
-    const moneyText = `$${Math.floor(gameState.money)}`;
+    const moneyText = formatMoney(gameState.money);
     ctx.fillText(moneyText, this.game.canvas.width - 20, 20);
   }
 }
