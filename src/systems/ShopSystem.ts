@@ -8,12 +8,15 @@ import {
   getUpgradeCost,
   canAffordUpgrade,
   purchaseUpgrade,
+  initializeUpgrades,
   type UpgradeDefinition,
   type UpgradeBranch,
   type UpgradeId,
 } from "../game/Upgrades";
-import { gameState } from "../game/GameState";
+import { gameState, resetGameState } from "../game/GameState";
 import { soundManager } from "../audio/SoundManager";
+import { saveGame, clearSaveData, spawnEntities } from "../game/SaveManager";
+import { clearAllEntities } from "../ecs/Component";
 import type { ClickSystem } from "./ClickSystem";
 
 const TILE_SIZE = 64;
@@ -27,11 +30,16 @@ interface TilePosition {
   def: UpgradeDefinition;
 }
 
+const RESET_BUTTON_WIDTH = 100;
+const RESET_BUTTON_HEIGHT = 30;
+
 export class ShopSystem extends System {
   isOpen: boolean = false;
   private tilePositions: TilePosition[] = [];
   private hoveredUpgrade: UpgradeDefinition | null = null;
   private isButtonHovered: boolean = false;
+  private isResetButtonHovered: boolean = false;
+  private showResetConfirm: boolean = false;
   private buttonX: number = 0;
   private buttonY: number = 0;
   private mouseX: number = 0;
@@ -69,6 +77,7 @@ export class ShopSystem extends System {
     if (e.key === "Tab" || e.key === "s" || e.key === "S") {
       e.preventDefault();
       this.isOpen = !this.isOpen;
+      this.showResetConfirm = false;
     }
   };
 
@@ -80,21 +89,44 @@ export class ShopSystem extends System {
       return;
     }
 
+    if (this.isResetButtonHovered) {
+      if (this.showResetConfirm) {
+        this.performReset();
+        this.showResetConfirm = false;
+      } else {
+        this.showResetConfirm = true;
+      }
+      return;
+    }
+
+    this.showResetConfirm = false;
+
     if (this.hoveredUpgrade) {
       const result = purchaseUpgrade(this.hoveredUpgrade.id, gameState.money);
       if (result.success) {
         gameState.money -= result.cost;
         this.flashTimers.set(this.hoveredUpgrade.id, this.FLASH_DURATION);
         soundManager.play("purchase");
+        saveGame();
       }
     }
   };
+
+  private performReset(): void {
+    clearSaveData();
+    clearAllEntities();
+    resetGameState();
+    initializeUpgrades();
+    spawnEntities();
+    this.isOpen = false;
+  }
 
   private handleMouseMove = (e: MouseEvent): void => {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
 
     this.isButtonHovered = this.checkButtonHover();
+    this.isResetButtonHovered = this.checkResetButtonHover();
 
     if (!this.isOpen) {
       this.hoveredUpgrade = null;
@@ -128,9 +160,26 @@ export class ShopSystem extends System {
     );
   }
 
+  private checkResetButtonHover(): boolean {
+    if (!this.isOpen) return false;
+    const resetX = 20;
+    const resetY = this.game.canvas.height - 60;
+    return (
+      this.mouseX >= resetX &&
+      this.mouseX <= resetX + RESET_BUTTON_WIDTH &&
+      this.mouseY >= resetY &&
+      this.mouseY <= resetY + RESET_BUTTON_HEIGHT
+    );
+  }
+
   private updateCursor(): void {
     const isHoveringCircle = this.clickSystem?.isHoveringCircle ?? false;
-    if (this.isButtonHovered || this.hoveredUpgrade || isHoveringCircle) {
+    if (
+      this.isButtonHovered ||
+      this.hoveredUpgrade ||
+      isHoveringCircle ||
+      this.isResetButtonHovered
+    ) {
       this.game.canvas.style.cursor = "pointer";
     } else {
       this.game.canvas.style.cursor = "default";
@@ -222,10 +271,44 @@ export class ShopSystem extends System {
       this.drawTooltip(ctx);
     }
 
+    this.drawResetButton(ctx);
+
     ctx.fillStyle = "#ffffff";
     ctx.font = "16px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Press TAB or S to close", width / 2, height - 30);
+  }
+
+  private drawResetButton(ctx: CanvasRenderingContext2D): void {
+    const resetX = 20;
+    const resetY = this.game.canvas.height - 60;
+
+    if (this.showResetConfirm) {
+      ctx.fillStyle = "#ff4444";
+    } else if (this.isResetButtonHovered) {
+      ctx.fillStyle = "#666666";
+    } else {
+      ctx.fillStyle = "#333333";
+    }
+
+    ctx.beginPath();
+    ctx.roundRect(resetX, resetY, RESET_BUTTON_WIDTH, RESET_BUTTON_HEIGHT, 5);
+    ctx.fill();
+
+    ctx.strokeStyle = this.showResetConfirm ? "#ff6666" : "#555555";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "12px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const text = this.showResetConfirm ? "Confirm Reset?" : "New Game";
+    ctx.fillText(
+      text,
+      resetX + RESET_BUTTON_WIDTH / 2,
+      resetY + RESET_BUTTON_HEIGHT / 2
+    );
   }
 
   private drawShopButton(): void {

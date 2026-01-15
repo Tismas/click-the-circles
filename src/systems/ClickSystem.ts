@@ -3,6 +3,7 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { Entity } from "../ecs/Entity";
 import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
+import { getClickDamage, getRadiusMulti } from "../game/Upgrades";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { spawnClickParticles } from "./ParticleSystem";
 import { soundManager } from "../audio/SoundManager";
@@ -71,7 +72,7 @@ export class ClickSystem extends System {
       const pos = getComponent(entity, "position");
       if (!health || !pos) continue;
 
-      const damage = Math.min(gameState.clickDamage, health.current);
+      const damage = Math.min(getClickDamage(), health.current);
       health.current = Math.max(0, health.current - damage);
 
       if (damage > 0) {
@@ -87,7 +88,7 @@ export class ClickSystem extends System {
     const entities = getEntitiesWithComponents("position", "clickable");
     const clicked: Entity[] = [];
     const baseClickRadius = 10;
-    const clickRadius = baseClickRadius * gameState.radiusMulti;
+    const clickRadius = baseClickRadius * getRadiusMulti();
 
     for (const entity of entities) {
       const pos = getComponent(entity, "position");

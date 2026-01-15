@@ -1,4 +1,3 @@
-import { gameState } from "./GameState";
 import { game } from "./gameInstance";
 import { spawnCircle, spawnBall } from "../utils/spawn";
 
@@ -43,6 +42,22 @@ const upgradeStates = new Map<UpgradeId, UpgradeState>();
 
 export function getUpgradeLevel(id: UpgradeId): number {
   return upgradeStates.get(id)?.level ?? 0;
+}
+
+export function getClickDamage(): number {
+  return 1 + getUpgradeLevel("clickDamage");
+}
+
+export function getRadiusMulti(): number {
+  return 1 + getUpgradeLevel("clickRadius") * 0.1;
+}
+
+export function getBallDamage(): number {
+  return 1 + getUpgradeLevel("ballDamage");
+}
+
+export function getBallSpeedMulti(): number {
+  return 1 + getUpgradeLevel("ballSpeed") * 0.05;
 }
 
 export function isUpgradeMaxed(id: UpgradeId): boolean {
@@ -99,6 +114,23 @@ export function initializeUpgrades(): void {
   }
 }
 
+export function getAllUpgradeLevels(): Record<UpgradeId, number> {
+  const levels: Partial<Record<UpgradeId, number>> = {};
+  for (const [id, state] of upgradeStates) {
+    levels[id] = state.level;
+  }
+  return levels as Record<UpgradeId, number>;
+}
+
+export function setAllUpgradeLevels(levels: Record<UpgradeId, number>): void {
+  for (const [id, level] of Object.entries(levels)) {
+    const state = upgradeStates.get(id as UpgradeId);
+    if (state) {
+      state.level = level;
+    }
+  }
+}
+
 const upgradeInputs: UpgradeInput[] = [
   {
     id: "clickDamage",
@@ -108,9 +140,6 @@ const upgradeInputs: UpgradeInput[] = [
     maxLevel: 5,
     baseCost: 20,
     branch: "right",
-    onPurchase: () => {
-      gameState.clickDamage += 1;
-    },
   },
   {
     id: "killBonus",
@@ -144,9 +173,6 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 400,
     branch: "right",
     parent: "moreCircles",
-    onPurchase: () => {
-      gameState.radiusMulti += 0.1;
-    },
   },
   {
     id: "whiteBall",
@@ -169,9 +195,6 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 100,
     branch: "left",
     parent: "whiteBall",
-    onPurchase: () => {
-      gameState.ballDamage += 1;
-    },
   },
   {
     id: "ballSpeed",
@@ -182,9 +205,6 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 100,
     branch: "left",
     parent: "whiteBall",
-    onPurchase: () => {
-      gameState.ballSpeedMulti += 0.05;
-    },
   },
   {
     id: "miningDrone",

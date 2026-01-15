@@ -2,6 +2,7 @@ import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { Entity } from "../ecs/Entity";
 import { gameState } from "../game/GameState";
+import { getBallDamage } from "../game/Upgrades";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { spawnBallHitParticles } from "./ParticleSystem";
 import { soundManager } from "../audio/SoundManager";
@@ -55,7 +56,7 @@ export class CollisionSystem extends System {
           currentCollisions.add(pairKey);
 
           if (!this.collidedPairs.has(pairKey)) {
-            const damage = gameState.ballDamage;
+            const damage = getBallDamage();
             health.current -= damage;
             gameState.money += damage;
 

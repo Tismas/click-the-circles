@@ -11,7 +11,7 @@ import { MovementSystem } from "./systems/MovementSystem";
 import { CollisionSystem } from "./systems/CollisionSystem";
 import { ParticleSystem } from "./systems/ParticleSystem";
 import { initializeUpgrades } from "./game/Upgrades";
-import { spawnCircle } from "./utils/spawn";
+import { loadGame, saveGame, spawnEntities } from "./game/SaveManager";
 
 initializeUpgrades();
 
@@ -30,6 +30,13 @@ game.addSystem(new HudSystem(game));
 game.addSystem(new FloatingTextSystem(game));
 game.addSystem(shopSystem);
 
-spawnCircle(game.canvas.width, game.canvas.height);
+const loaded = loadGame();
+if (!loaded) {
+  spawnEntities();
+}
+
+setInterval(() => {
+  saveGame();
+}, 30000);
 
 game.start();

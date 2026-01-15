@@ -1,6 +1,6 @@
 import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
-import { gameState } from "../game/GameState";
+import { getBallSpeedMulti } from "../game/Upgrades";
 import { soundManager } from "../audio/SoundManager";
 
 const BALL_RADIUS = 15;
@@ -16,7 +16,7 @@ export class MovementSystem extends System {
       if (!pos || !vel) continue;
 
       const dtSeconds = dt / 1000;
-      const speedMulti = gameState.ballSpeedMulti;
+      const speedMulti = getBallSpeedMulti();
 
       pos.x += vel.x * speedMulti * dtSeconds;
       pos.y += vel.y * speedMulti * dtSeconds;
