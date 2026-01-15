@@ -49,7 +49,7 @@ export function getClickDamage(): number {
 }
 
 export function getRadiusMulti(): number {
-  return 1 + getUpgradeLevel("clickRadius") * 0.1;
+  return 1 + getUpgradeLevel("clickRadius") * 0.5;
 }
 
 export function getBallDamage(): number {
@@ -73,10 +73,13 @@ export function isUpgradeUnlocked(id: UpgradeId): boolean {
   return isUpgradeMaxed(def.parent);
 }
 
+const COST_SCALE_FACTOR = 1.5;
+
 export function getUpgradeCost(id: UpgradeId): number {
   const def = upgradeDefinitions.find((u) => u.id === id);
   if (!def) return Infinity;
-  return def.baseCost;
+  const level = getUpgradeLevel(id);
+  return Math.floor(def.baseCost * Math.pow(COST_SCALE_FACTOR, level));
 }
 
 export function canAffordUpgrade(id: UpgradeId, money: number): boolean {
@@ -138,7 +141,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Increases click damage by 1",
     icon: "👆",
     maxLevel: 5,
-    baseCost: 20,
+    baseCost: 10,
     branch: "right",
   },
   {
@@ -147,7 +150,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Gain 10% of circle max HP as bonus on kill",
     icon: "💀",
     maxLevel: 10,
-    baseCost: 500,
+    baseCost: 100,
     branch: "right",
     parent: "clickDamage",
   },
@@ -157,7 +160,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Spawns an additional circle",
     icon: "➕",
     maxLevel: 5,
-    baseCost: 200,
+    baseCost: 50,
     branch: "right",
     parent: "clickDamage",
     onPurchase: () => {
@@ -170,7 +173,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Increases click radius by 10%",
     icon: "⭕",
     maxLevel: 5,
-    baseCost: 400,
+    baseCost: 75,
     branch: "right",
     parent: "moreCircles",
   },
@@ -180,7 +183,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Spawns a bouncing ball that damages circles",
     icon: "⚪",
     maxLevel: 1,
-    baseCost: 1000,
+    baseCost: 200,
     branch: "left",
     onPurchase: () => {
       spawnBall(game.canvas.width, game.canvas.height);
@@ -192,7 +195,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Increases ball damage by 1",
     icon: "💥",
     maxLevel: 10,
-    baseCost: 100,
+    baseCost: 50,
     branch: "left",
     parent: "whiteBall",
   },
@@ -202,7 +205,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Increases ball speed by 5%",
     icon: "⚡",
     maxLevel: 10,
-    baseCost: 100,
+    baseCost: 50,
     branch: "left",
     parent: "whiteBall",
   },
@@ -212,7 +215,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Generates $1/sec passively",
     icon: "⛏️",
     maxLevel: 1,
-    baseCost: 1000,
+    baseCost: 150,
     branch: "top",
   },
   {
@@ -221,7 +224,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Decreases generation cooldown by 1 tick",
     icon: "⏱️",
     maxLevel: 15,
-    baseCost: 500,
+    baseCost: 100,
     branch: "top",
     parent: "miningDrone",
   },
@@ -231,7 +234,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Increases passive income by $1/tick",
     icon: "💰",
     maxLevel: 15,
-    baseCost: 500,
+    baseCost: 100,
     branch: "top",
     parent: "miningDrone",
   },
@@ -241,7 +244,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Hold click to auto-damage (1/sec)",
     icon: "✋",
     maxLevel: 1,
-    baseCost: 100,
+    baseCost: 25,
     branch: "bottom",
   },
   {
@@ -250,7 +253,7 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Reduces hold interval by 1 tick",
     icon: "🔄",
     maxLevel: 15,
-    baseCost: 250,
+    baseCost: 50,
     branch: "bottom",
     parent: "clickHold",
   },

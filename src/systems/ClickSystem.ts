@@ -29,8 +29,7 @@ export class ClickSystem extends System {
   private handleMouseMove = (e: MouseEvent): void => {
     this.mouseX = e.clientX;
     this.mouseY = e.clientY;
-    const hovered = this.getHoveredEntities(this.mouseX, this.mouseY);
-    this.isHoveringCircle = hovered.length > 0;
+    this.updateHoverState();
   };
 
   private handleMouseDown = (_e: MouseEvent): void => {
@@ -82,6 +81,13 @@ export class ClickSystem extends System {
         soundManager.play("click");
       }
     }
+
+    this.updateHoverState();
+  }
+
+  private updateHoverState(): void {
+    const hovered = this.getHoveredEntities(this.mouseX, this.mouseY);
+    this.isHoveringCircle = hovered.length > 0;
   }
 
   private getHoveredEntities(x: number, y: number): Entity[] {
@@ -109,5 +115,19 @@ export class ClickSystem extends System {
     }
 
     return clicked;
+  }
+
+  render(): void {
+    const baseClickRadius = 10;
+    const clickRadius = baseClickRadius * getRadiusMulti();
+
+    const ctx = this.game.ctx;
+    ctx.beginPath();
+    ctx.arc(this.mouseX, this.mouseY, clickRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = this.isHoveringCircle
+      ? "rgba(255, 215, 0, 0.6)"
+      : "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 }

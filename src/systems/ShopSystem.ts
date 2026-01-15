@@ -48,7 +48,9 @@ export class ShopSystem extends System {
   private lastTileCalcWidth: number = 0;
   private lastTileCalcHeight: number = 0;
   private flashTimers = new Map<UpgradeId, number>();
+  private maxedTimers = new Map<UpgradeId, number>();
   private readonly FLASH_DURATION = 300;
+  private readonly MAXED_EFFECT_DURATION = 1000;
 
   setClickSystem(clickSystem: ClickSystem): void {
     this.clickSystem = clickSystem;
@@ -107,10 +109,19 @@ export class ShopSystem extends System {
         gameState.money -= result.cost;
         this.flashTimers.set(this.hoveredUpgrade.id, this.FLASH_DURATION);
         soundManager.play("purchase");
+
+        if (isUpgradeMaxed(this.hoveredUpgrade.id)) {
+          this.triggerMaxedEffect(this.hoveredUpgrade.id);
+        }
+
         saveGame();
       }
     }
   };
+
+  private triggerMaxedEffect(id: UpgradeId): void {
+    this.maxedTimers.set(id, this.MAXED_EFFECT_DURATION);
+  }
 
   private performReset(): void {
     clearSaveData();
@@ -244,6 +255,15 @@ export class ShopSystem extends System {
         this.flashTimers.delete(id);
       } else {
         this.flashTimers.set(id, newTime);
+      }
+    }
+
+    for (const [id, time] of this.maxedTimers) {
+      const newTime = time - dt;
+      if (newTime <= 0) {
+        this.maxedTimers.delete(id);
+      } else {
+        this.maxedTimers.set(id, newTime);
       }
     }
   }
@@ -433,6 +453,11 @@ export class ShopSystem extends System {
       ctx.fill();
     }
 
+    const maxedTime = this.maxedTimers.get(def.id);
+    if (maxedTime !== undefined) {
+      this.drawMaxedEffect(ctx, x, y, maxedTime);
+    }
+
     ctx.font = "28px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -446,6 +471,48 @@ export class ShopSystem extends System {
       ctx.textBaseline = "bottom";
       ctx.fillText(`${level}/${def.maxLevel}`, x, y + halfSize - 4);
     }
+  }
+
+  private drawMaxedEffect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    timeRemaining: number
+  ): void {
+    const progress = 1 - timeRemaining / this.MAXED_EFFECT_DURATION;
+    const numRays = 8;
+    const maxRadius = 60;
+    const rayLength = 20;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(progress * Math.PI * 0.5);
+
+    const radius = progress * maxRadius;
+    const alpha = 1 - progress;
+
+    for (let i = 0; i < numRays; i++) {
+      const angle = (i / numRays) * Math.PI * 2;
+      const innerX = Math.cos(angle) * radius;
+      const innerY = Math.sin(angle) * radius;
+      const outerX = Math.cos(angle) * (radius + rayLength * (1 - progress));
+      const outerY = Math.sin(angle) * (radius + rayLength * (1 - progress));
+
+      ctx.strokeStyle = `rgba(255, 215, 0, ${alpha})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(innerX, innerY);
+      ctx.lineTo(outerX, outerY);
+      ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(34, 197, 94, ${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.restore();
   }
 
   private drawTooltip(ctx: CanvasRenderingContext2D): void {

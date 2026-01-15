@@ -531,7 +531,7 @@ Each step should be fully testable before moving on.
 
 ---
 
-#### Step 9.2: Game Balance Pass
+#### Step 9.2: Game Balance Pass ✅
 
 **Goal**: Satisfying progression curve
 
