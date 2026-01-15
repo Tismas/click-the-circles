@@ -15,3 +15,5 @@ HTML Canvas game written in typescript. No frameworks or libraries, just pure ty
 - Avoid code duplication. When working on new features make sure similar code isn't created somewhere else. If so, refactor that so it's reusable
 - Follow typescript, gamedev and ECS best practices
 - When done implementing something edit plan.md and if you discover that something can be done better or should be done in differento order than in plan.md - suggest improvements.
+- Avoid comments
+- Avoid getters and setters if they are not doing anything special. Just use public field in that case.
