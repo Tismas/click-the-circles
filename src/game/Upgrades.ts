@@ -1,4 +1,6 @@
 import { gameState } from "./GameState";
+import { game } from "./gameInstance";
+import { spawnCircle } from "../utils/spawn";
 
 export type UpgradeId =
   | "clickDamage"
@@ -25,7 +27,6 @@ interface UpgradeInput {
   baseCost: number;
   branch: UpgradeBranch;
   parent?: UpgradeId;
-  unlockCondition: () => boolean;
   onPurchase?: () => void;
 }
 
@@ -53,7 +54,8 @@ export function isUpgradeMaxed(id: UpgradeId): boolean {
 export function isUpgradeUnlocked(id: UpgradeId): boolean {
   const def = upgradeDefinitions.find((u) => u.id === id);
   if (!def) return false;
-  return def.unlockCondition();
+  if (!def.parent) return true;
+  return isUpgradeMaxed(def.parent);
 }
 
 export function getUpgradeCost(id: UpgradeId): number {
@@ -106,7 +108,6 @@ const upgradeInputs: UpgradeInput[] = [
     maxLevel: 5,
     baseCost: 20,
     branch: "right",
-    unlockCondition: () => true,
     onPurchase: () => {
       gameState.clickDamage += 1;
     },
@@ -120,18 +121,6 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 500,
     branch: "right",
     parent: "clickDamage",
-    unlockCondition: () => getUpgradeLevel("clickDamage") >= 1,
-  },
-  {
-    id: "clickRadius",
-    name: "Click Radius",
-    description: "Increases click radius by 10%",
-    icon: "⭕",
-    maxLevel: 5,
-    baseCost: 200,
-    branch: "right",
-    parent: "clickDamage",
-    unlockCondition: () => isUpgradeMaxed("clickDamage"),
   },
   {
     id: "moreCircles",
@@ -139,10 +128,25 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Spawns an additional circle",
     icon: "➕",
     maxLevel: 5,
-    baseCost: 1000,
+    baseCost: 200,
     branch: "right",
-    parent: "clickRadius",
-    unlockCondition: () => isUpgradeMaxed("clickRadius"),
+    parent: "clickDamage",
+    onPurchase: () => {
+      spawnCircle(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
+    id: "clickRadius",
+    name: "Click Radius",
+    description: "Increases click radius by 10%",
+    icon: "⭕",
+    maxLevel: 5,
+    baseCost: 400,
+    branch: "right",
+    parent: "moreCircles",
+    onPurchase: () => {
+      gameState.radiusMulti += 0.1;
+    },
   },
   {
     id: "whiteBall",
@@ -152,7 +156,6 @@ const upgradeInputs: UpgradeInput[] = [
     maxLevel: 1,
     baseCost: 1000,
     branch: "left",
-    unlockCondition: () => isUpgradeMaxed("clickDamage"),
   },
   {
     id: "ballDamage",
@@ -163,7 +166,6 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 100,
     branch: "left",
     parent: "whiteBall",
-    unlockCondition: () => getUpgradeLevel("whiteBall") >= 1,
   },
   {
     id: "ballSpeed",
@@ -174,17 +176,15 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 100,
     branch: "left",
     parent: "whiteBall",
-    unlockCondition: () => getUpgradeLevel("whiteBall") >= 1,
   },
   {
     id: "miningDrone",
     name: "Mining Drone",
     description: "Generates $1/sec passively",
     icon: "⛏️",
-    maxLevel: 10,
+    maxLevel: 1,
     baseCost: 1000,
     branch: "top",
-    unlockCondition: () => true,
   },
   {
     id: "tickSpeed",
@@ -192,10 +192,9 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Decreases generation cooldown by 1 tick",
     icon: "⏱️",
     maxLevel: 15,
-    baseCost: 10000,
+    baseCost: 500,
     branch: "top",
     parent: "miningDrone",
-    unlockCondition: () => getUpgradeLevel("miningDrone") >= 1,
   },
   {
     id: "valueUpgrade",
@@ -203,10 +202,9 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Increases passive income by $1/tick",
     icon: "💰",
     maxLevel: 15,
-    baseCost: 10000,
+    baseCost: 500,
     branch: "top",
     parent: "miningDrone",
-    unlockCondition: () => getUpgradeLevel("miningDrone") >= 1,
   },
   {
     id: "clickHold",
@@ -214,9 +212,8 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Hold click to auto-damage (1/sec)",
     icon: "✋",
     maxLevel: 1,
-    baseCost: 500,
+    baseCost: 100,
     branch: "bottom",
-    unlockCondition: () => isUpgradeMaxed("clickDamage"),
   },
   {
     id: "holdSpeed",
@@ -224,10 +221,9 @@ const upgradeInputs: UpgradeInput[] = [
     description: "Reduces hold interval by 1 tick",
     icon: "🔄",
     maxLevel: 15,
-    baseCost: 2500,
+    baseCost: 250,
     branch: "bottom",
     parent: "clickHold",
-    unlockCondition: () => getUpgradeLevel("clickHold") >= 1,
   },
 ];
 

@@ -4,35 +4,64 @@ import type { Entity } from "../ecs/Entity";
 import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
+import { getUpgradeLevel } from "../game/Upgrades";
 
 export class ClickSystem extends System {
-  private clickX: number = 0;
-  private clickY: number = 0;
   private hasClick: boolean = false;
   isHoveringCircle: boolean = false;
+  private isHolding: boolean = false;
+  private mouseX: number = 0;
+  private mouseY: number = 0;
+  private holdTickCounter: number = 0;
 
   constructor(game: Game) {
     super(game);
-    this.game.canvas.addEventListener("click", this.handleClick);
     this.game.canvas.addEventListener("mousemove", this.handleMouseMove);
+    this.game.canvas.addEventListener("mousedown", this.handleMouseDown);
+    this.game.canvas.addEventListener("mouseup", this.handleMouseUp);
+    this.game.canvas.addEventListener("mouseleave", this.handleMouseUp);
   }
 
-  private handleClick = (e: MouseEvent): void => {
-    this.clickX = e.clientX;
-    this.clickY = e.clientY;
-    this.hasClick = true;
-  };
-
   private handleMouseMove = (e: MouseEvent): void => {
-    const hovered = this.getHoveredEntities(e.clientX, e.clientY);
+    this.mouseX = e.clientX;
+    this.mouseY = e.clientY;
+    const hovered = this.getHoveredEntities(this.mouseX, this.mouseY);
     this.isHoveringCircle = hovered.length > 0;
   };
+
+  private handleMouseDown = (_e: MouseEvent): void => {
+    this.hasClick = true;
+    this.isHolding = true;
+  };
+
+  private handleMouseUp = (): void => {
+    this.isHolding = false;
+    this.holdTickCounter = 0;
+  };
+
+  fixedUpdate(): void {
+    const clickHoldLevel = getUpgradeLevel("clickHold");
+    if (clickHoldLevel === 0 || !this.isHolding) return;
+
+    const holdSpeedLevel = getUpgradeLevel("holdSpeed");
+    const baseCooldown = 20;
+    const cooldown = Math.max(1, baseCooldown - holdSpeedLevel);
+
+    this.holdTickCounter++;
+    if (this.holdTickCounter >= cooldown) {
+      this.holdTickCounter = 0;
+      this.applyDamageAt(this.mouseX, this.mouseY);
+    }
+  }
 
   update(_dt: number): void {
     if (!this.hasClick) return;
     this.hasClick = false;
+    this.applyDamageAt(this.mouseX, this.mouseY);
+  }
 
-    const clickedEntities = this.getHoveredEntities(this.clickX, this.clickY);
+  private applyDamageAt(x: number, y: number): void {
+    const clickedEntities = this.getHoveredEntities(x, y);
 
     for (const entity of clickedEntities) {
       const health = getComponent(entity, "health");
@@ -52,6 +81,8 @@ export class ClickSystem extends System {
   private getHoveredEntities(x: number, y: number): Entity[] {
     const entities = getEntitiesWithComponents("position", "clickable");
     const clicked: Entity[] = [];
+    const baseClickRadius = 10;
+    const clickRadius = baseClickRadius * gameState.radiusMulti;
 
     for (const entity of entities) {
       const pos = getComponent(entity, "position");
@@ -63,7 +94,7 @@ export class ClickSystem extends System {
       const dy = y - pos.y;
       const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (distance <= clickable.radius) {
+      if (distance <= clickable.radius + clickRadius) {
         clicked.push(entity);
       }
     }
