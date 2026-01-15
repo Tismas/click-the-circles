@@ -3,6 +3,7 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { spawnDeathParticles } from "./ParticleSystem";
+import { soundManager } from "../audio/SoundManager";
 import { getRandomCirclePosition } from "../utils/spawn";
 import { getUpgradeLevel } from "../game/Upgrades";
 
@@ -40,6 +41,7 @@ export class CircleLifecycleSystem extends System {
         if (circle) {
           spawnDeathParticles(pos.x, pos.y, circle.color);
         }
+        soundManager.play("death");
 
         const newMax = Math.floor(health.max * 1.1);
         health.max = newMax;

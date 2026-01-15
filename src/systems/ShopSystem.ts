@@ -13,6 +13,7 @@ import {
   type UpgradeId,
 } from "../game/Upgrades";
 import { gameState } from "../game/GameState";
+import { soundManager } from "../audio/SoundManager";
 import type { ClickSystem } from "./ClickSystem";
 
 const TILE_SIZE = 64;
@@ -84,6 +85,7 @@ export class ShopSystem extends System {
       if (result.success) {
         gameState.money -= result.cost;
         this.flashTimers.set(this.hoveredUpgrade.id, this.FLASH_DURATION);
+        soundManager.play("purchase");
       }
     }
   };

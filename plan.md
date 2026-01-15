@@ -470,7 +470,7 @@ Each step should be fully testable before moving on.
 
 ---
 
-#### Step 8.2: Sound Effects
+#### Step 8.2: Sound Effects ✅
 
 **Goal**: Satisfying audio feedback
 

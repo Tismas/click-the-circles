@@ -5,6 +5,7 @@ import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { spawnClickParticles } from "./ParticleSystem";
+import { soundManager } from "../audio/SoundManager";
 import { getUpgradeLevel } from "../game/Upgrades";
 import { getHealthScale } from "../utils/healthScale";
 
@@ -77,6 +78,7 @@ export class ClickSystem extends System {
         gameState.money += damage;
         spawnFloatingText(pos.x, pos.y, `+$${damage}`, "#ffd700");
         spawnClickParticles(x, y);
+        soundManager.play("click");
       }
     }
   }

@@ -4,6 +4,7 @@ import type { Entity } from "../ecs/Entity";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
 import { spawnBallHitParticles } from "./ParticleSystem";
+import { soundManager } from "../audio/SoundManager";
 import { getHealthScale } from "../utils/healthScale";
 
 const BALL_RADIUS = 15;
@@ -71,6 +72,7 @@ export class CollisionSystem extends System {
             const collisionX = circlePos.x + nx * circleRadius;
             const collisionY = circlePos.y + ny * circleRadius;
             spawnBallHitParticles(collisionX, collisionY);
+            soundManager.play("ballHit");
 
             const dotProduct = ballVel.x * nx + ballVel.y * ny;
 
