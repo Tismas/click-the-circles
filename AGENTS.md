@@ -19,3 +19,4 @@ HTML Canvas game written in typescript. No frameworks or libraries, just pure ty
 - Avoid getters and setters if they are not doing anything special. Just use public field in that case.
 - Avoid index files.
 - Make sure coding style is consistent
+- Avoid using `!` - make sure you handle edge cases!
