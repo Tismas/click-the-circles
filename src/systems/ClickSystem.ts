@@ -9,10 +9,12 @@ export class ClickSystem extends System {
   private clickX: number = 0;
   private clickY: number = 0;
   private hasClick: boolean = false;
+  isHoveringCircle: boolean = false;
 
   constructor(game: Game) {
     super(game);
     this.game.canvas.addEventListener("click", this.handleClick);
+    this.game.canvas.addEventListener("mousemove", this.handleMouseMove);
   }
 
   private handleClick = (e: MouseEvent): void => {
@@ -21,11 +23,16 @@ export class ClickSystem extends System {
     this.hasClick = true;
   };
 
+  private handleMouseMove = (e: MouseEvent): void => {
+    const hovered = this.getHoveredEntities(e.clientX, e.clientY);
+    this.isHoveringCircle = hovered.length > 0;
+  };
+
   update(_dt: number): void {
     if (!this.hasClick) return;
     this.hasClick = false;
 
-    const clickedEntities = this.getClickedEntities(this.clickX, this.clickY);
+    const clickedEntities = this.getHoveredEntities(this.clickX, this.clickY);
 
     for (const entity of clickedEntities) {
       const health = getComponent(entity, "health");
@@ -42,7 +49,7 @@ export class ClickSystem extends System {
     }
   }
 
-  private getClickedEntities(x: number, y: number): Entity[] {
+  private getHoveredEntities(x: number, y: number): Entity[] {
     const entities = getEntitiesWithComponents("position", "clickable");
     const clicked: Entity[] = [];
 

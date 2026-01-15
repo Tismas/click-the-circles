@@ -5,17 +5,26 @@ import { ClickSystem } from "./systems/ClickSystem";
 import { FloatingTextSystem } from "./systems/FloatingTextSystem";
 import { HudSystem } from "./systems/HudSystem";
 import { CircleLifecycleSystem } from "./systems/CircleLifecycleSystem";
+import { ShopSystem } from "./systems/ShopSystem";
 import { createEntity } from "./ecs/Entity";
 import { addComponent } from "./ecs/Component";
 import { getRandomCirclePosition } from "./utils/spawn";
+import { initializeUpgrades } from "./game/Upgrades";
+
+initializeUpgrades();
 
 const game = new Game();
 
-game.addSystem(new ClickSystem(game));
+const clickSystem = new ClickSystem(game);
+const shopSystem = new ShopSystem(game);
+shopSystem.setClickSystem(clickSystem);
+
+game.addSystem(clickSystem);
 game.addSystem(new CircleLifecycleSystem(game));
 game.addSystem(new RenderSystem(game));
 game.addSystem(new HudSystem(game));
 game.addSystem(new FloatingTextSystem(game));
+game.addSystem(shopSystem);
 
 const circleRadius = 60;
 const initialPos = getRandomCirclePosition(
