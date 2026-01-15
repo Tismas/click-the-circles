@@ -1,6 +1,6 @@
 import type { UpgradeId } from "./Upgrades";
 
-export const CURRENT_SAVE_VERSION = 4;
+export const CURRENT_SAVE_VERSION = 5;
 
 export interface CircleHealth {
   current: number;
@@ -12,6 +12,7 @@ export interface SaveData {
   money: number;
   upgradeLevels: Record<UpgradeId, number>;
   circleHealths: CircleHealth[];
+  shownHints: string[];
 }
 
 interface SaveDataV3 {
@@ -20,10 +21,17 @@ interface SaveDataV3 {
   upgradeLevels: Record<UpgradeId, number>;
 }
 
+interface SaveDataV4 {
+  version: 4;
+  money: number;
+  upgradeLevels: Record<UpgradeId, number>;
+  circleHealths: CircleHealth[];
+}
+
 type MigrationFn = (data: unknown) => unknown;
 
 const migrations: Record<number, MigrationFn> = {
-  3: (data: unknown): SaveData => {
+  3: (data: unknown): SaveDataV4 => {
     const oldData = data as SaveDataV3;
     const circleCount = 1 + (oldData.upgradeLevels.moreCircles ?? 0);
     const circleHealths: CircleHealth[] = [];
@@ -35,6 +43,16 @@ const migrations: Record<number, MigrationFn> = {
       money: oldData.money,
       upgradeLevels: oldData.upgradeLevels,
       circleHealths,
+    };
+  },
+  4: (data: unknown): SaveData => {
+    const oldData = data as SaveDataV4;
+    return {
+      version: 5,
+      money: oldData.money,
+      upgradeLevels: oldData.upgradeLevels,
+      circleHealths: oldData.circleHealths,
+      shownHints: [],
     };
   },
 };

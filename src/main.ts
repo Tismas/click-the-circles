@@ -10,6 +10,7 @@ import { PassiveIncomeSystem } from "./systems/PassiveIncomeSystem";
 import { MovementSystem } from "./systems/MovementSystem";
 import { CollisionSystem } from "./systems/CollisionSystem";
 import { ParticleSystem } from "./systems/ParticleSystem";
+import { TutorialSystem } from "./systems/TutorialSystem";
 import { initializeUpgrades } from "./game/Upgrades";
 import { loadGame, saveGame, spawnEntities } from "./game/SaveManager";
 
@@ -17,7 +18,9 @@ initializeUpgrades();
 
 const clickSystem = new ClickSystem(game);
 const shopSystem = new ShopSystem(game);
+const tutorialSystem = new TutorialSystem(game);
 shopSystem.setClickSystem(clickSystem);
+shopSystem.setTutorialSystem(tutorialSystem);
 
 game.addSystem(clickSystem);
 game.addSystem(new CircleLifecycleSystem(game));
@@ -29,11 +32,14 @@ game.addSystem(new ParticleSystem(game));
 game.addSystem(new HudSystem(game));
 game.addSystem(new FloatingTextSystem(game));
 game.addSystem(shopSystem);
+game.addSystem(tutorialSystem);
 
 const loaded = loadGame();
 if (!loaded) {
   spawnEntities();
 }
+
+tutorialSystem.init();
 
 setInterval(() => {
   saveGame();

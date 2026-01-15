@@ -24,7 +24,36 @@ export class ClickSystem extends System {
     this.game.canvas.addEventListener("mousedown", this.handleMouseDown);
     this.game.canvas.addEventListener("mouseup", this.handleMouseUp);
     this.game.canvas.addEventListener("mouseleave", this.handleMouseUp);
+
+    this.game.canvas.addEventListener("touchstart", this.handleTouchStart, { passive: false });
+    this.game.canvas.addEventListener("touchmove", this.handleTouchMove, { passive: false });
+    this.game.canvas.addEventListener("touchend", this.handleTouchEnd);
   }
+
+  private handleTouchStart = (e: TouchEvent): void => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    this.mouseX = touch.clientX;
+    this.mouseY = touch.clientY;
+    this.updateHoverState();
+    this.hasClick = true;
+    this.isHolding = true;
+  };
+
+  private handleTouchMove = (e: TouchEvent): void => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    if (!touch) return;
+    this.mouseX = touch.clientX;
+    this.mouseY = touch.clientY;
+    this.updateHoverState();
+  };
+
+  private handleTouchEnd = (): void => {
+    this.isHolding = false;
+    this.holdTickCounter = 0;
+  };
 
   private handleMouseMove = (e: MouseEvent): void => {
     this.mouseX = e.clientX;

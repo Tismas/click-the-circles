@@ -14,6 +14,12 @@ import {
   type CircleHealth,
 } from "./SaveMigrations";
 
+import {
+  getShownHints,
+  setShownHints,
+  clearShownHints,
+} from "../systems/TutorialSystem";
+
 const SAVE_KEY = "click-the-circles-save";
 
 function getCircleHealths(): CircleHealth[] {
@@ -34,6 +40,7 @@ export function saveGame(): void {
     money: gameState.money,
     upgradeLevels: getAllUpgradeLevels(),
     circleHealths: getCircleHealths(),
+    shownHints: Array.from(getShownHints()),
   };
 
   try {
@@ -58,6 +65,7 @@ export function loadGame(): boolean {
 
     gameState.money = saveData.money;
     setAllUpgradeLevels(saveData.upgradeLevels);
+    setShownHints(saveData.shownHints);
     spawnEntitiesFromSave(saveData.circleHealths);
 
     return true;
@@ -95,10 +103,7 @@ export function spawnEntities(): void {
   }
 }
 
-export function hasSaveData(): boolean {
-  return localStorage.getItem(SAVE_KEY) !== null;
-}
-
 export function clearSaveData(): void {
   localStorage.removeItem(SAVE_KEY);
+  clearShownHints();
 }

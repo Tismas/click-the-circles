@@ -18,6 +18,7 @@ import { soundManager } from "../audio/SoundManager";
 import { saveGame, clearSaveData, spawnEntities } from "../game/SaveManager";
 import { clearAllEntities } from "../ecs/Component";
 import type { ClickSystem } from "./ClickSystem";
+import { TutorialSystem } from "./TutorialSystem";
 
 const TILE_SIZE = 64;
 const TILE_GAP = 80;
@@ -34,8 +35,19 @@ const RESET_BUTTON_WIDTH = 100;
 const RESET_BUTTON_HEIGHT = 30;
 
 export class ShopSystem extends System {
-  isOpen: boolean = false;
+  private _isOpen: boolean = false;
   private tilePositions: TilePosition[] = [];
+
+  get isOpen(): boolean {
+    return this._isOpen;
+  }
+
+  private setOpen(open: boolean): void {
+    if (open && !this._isOpen) {
+      this.tutorialSystem?.setShopOpened(true);
+    }
+    this._isOpen = open;
+  }
   private hoveredUpgrade: UpgradeDefinition | null = null;
   private isButtonHovered: boolean = false;
   private isResetButtonHovered: boolean = false;
@@ -45,6 +57,7 @@ export class ShopSystem extends System {
   private mouseX: number = 0;
   private mouseY: number = 0;
   private clickSystem: ClickSystem | null = null;
+  private tutorialSystem: TutorialSystem | null = null;
   private lastTileCalcWidth: number = 0;
   private lastTileCalcHeight: number = 0;
   private flashTimers = new Map<UpgradeId, number>();
@@ -56,14 +69,45 @@ export class ShopSystem extends System {
     this.clickSystem = clickSystem;
   }
 
+  setTutorialSystem(tutorialSystem: TutorialSystem): void {
+    this.tutorialSystem = tutorialSystem;
+  }
+
   constructor(game: Game) {
     super(game);
     window.addEventListener("keydown", this.handleKeyDown);
     this.game.canvas.addEventListener("mousemove", this.handleMouseMove);
     this.game.canvas.addEventListener("click", this.handleClick);
+    this.game.canvas.addEventListener("touchstart", this.handleTouchStart, {
+      passive: false,
+    });
+    this.game.canvas.addEventListener("touchmove", this.handleTouchMove, {
+      passive: false,
+    });
     window.addEventListener("resize", this.handleResize);
     this.updatePositions();
   }
+
+  private handleTouchStart = (e: TouchEvent): void => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    this.mouseX = touch.clientX;
+    this.mouseY = touch.clientY;
+    this.isButtonHovered = this.checkButtonHover();
+    this.isResetButtonHovered = this.checkResetButtonHover();
+    this.updateHoveredUpgrade();
+    this.handleClick(e as unknown as MouseEvent);
+  };
+
+  private handleTouchMove = (e: TouchEvent): void => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    this.mouseX = touch.clientX;
+    this.mouseY = touch.clientY;
+    this.isButtonHovered = this.checkButtonHover();
+    this.isResetButtonHovered = this.checkResetButtonHover();
+    this.updateHoveredUpgrade();
+  };
 
   private handleResize = (): void => {
     this.updatePositions();
@@ -78,15 +122,15 @@ export class ShopSystem extends System {
   private handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === "Tab" || e.key === "s" || e.key === "S") {
       e.preventDefault();
-      this.isOpen = !this.isOpen;
+      this.setOpen(!this._isOpen);
       this.showResetConfirm = false;
     }
   };
 
   private handleClick = (_e: MouseEvent): void => {
-    if (!this.isOpen) {
+    if (!this._isOpen) {
       if (this.isButtonHovered) {
-        this.isOpen = true;
+        this.setOpen(true);
       }
       return;
     }
@@ -110,6 +154,8 @@ export class ShopSystem extends System {
         this.flashTimers.set(this.hoveredUpgrade.id, this.FLASH_DURATION);
         soundManager.play("purchase");
 
+        this.tutorialSystem?.notifyPurchase();
+
         if (isUpgradeMaxed(this.hoveredUpgrade.id)) {
           this.triggerMaxedEffect(this.hoveredUpgrade.id);
         }
@@ -129,7 +175,8 @@ export class ShopSystem extends System {
     resetGameState();
     initializeUpgrades();
     spawnEntities();
-    this.isOpen = false;
+    this.tutorialSystem?.reset();
+    this.setOpen(false);
   }
 
   private handleMouseMove = (e: MouseEvent): void => {
@@ -138,10 +185,13 @@ export class ShopSystem extends System {
 
     this.isButtonHovered = this.checkButtonHover();
     this.isResetButtonHovered = this.checkResetButtonHover();
+    this.updateHoveredUpgrade();
+    this.updateCursor();
+  };
 
+  private updateHoveredUpgrade(): void {
     if (!this.isOpen) {
       this.hoveredUpgrade = null;
-      this.updateCursor();
       return;
     }
 
@@ -158,9 +208,7 @@ export class ShopSystem extends System {
         break;
       }
     }
-
-    this.updateCursor();
-  };
+  }
 
   private checkButtonHover(): boolean {
     return (

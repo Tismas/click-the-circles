@@ -545,7 +545,7 @@ Each step should be fully testable before moving on.
 
 ---
 
-#### Step 9.3: Final Polish
+#### Step 9.3: Final Polish ✅
 
 **Goal**: Production-ready game
 
@@ -554,7 +554,7 @@ Each step should be fully testable before moving on.
 - Add simple tutorial hints (first-time player)
 - Performance optimization (object pooling, render culling)
 - Responsive canvas (handle window resize)
-- Mobile touch support (optional)
+- Mobile touch support
 - Final visual/audio pass
 
 **Test**: Game runs smoothly, looks great, plays well
