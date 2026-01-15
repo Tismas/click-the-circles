@@ -13,8 +13,19 @@ export class RenderSystem extends System {
 
       if (!pos || !circle) continue;
 
+      const health = getComponent(entity, "health");
+      let displayRadius = circle.radius;
+
+      if (health) {
+        const healthPercent = health.current / health.max;
+        const minScale = 0.4;
+        const maxScale = 1.0;
+        const scale = minScale + healthPercent * (maxScale - minScale);
+        displayRadius = circle.radius * scale;
+      }
+
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, circle.radius, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, displayRadius, 0, Math.PI * 2);
 
       ctx.fillStyle = circle.color;
       ctx.fill();
@@ -23,6 +34,14 @@ export class RenderSystem extends System {
         ctx.lineWidth = circle.outlineWidth;
         ctx.strokeStyle = circle.outlineColor;
         ctx.stroke();
+      }
+
+      if (health) {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `bold ${Math.max(16, displayRadius * 0.6)}px Arial`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(Math.ceil(health.current).toString(), pos.x, pos.y);
       }
     }
   }
