@@ -131,6 +131,11 @@ export class ShopSystem extends System {
       return;
     }
 
+    if (this.isButtonHovered) {
+      this.setOpen(false);
+      return;
+    }
+
     if (this.isResetButtonHovered) {
       if (this.showResetConfirm) {
         this.performReset();
@@ -340,6 +345,8 @@ export class ShopSystem extends System {
     ctx.font = "16px Arial";
     ctx.textAlign = "center";
     ctx.fillText("Press TAB or S to close", width / 2, height - 30);
+
+    this.drawShopButton();
   }
 
   private drawResetButton(ctx: CanvasRenderingContext2D): void {
@@ -374,8 +381,18 @@ export class ShopSystem extends System {
     );
   }
 
+  private canAffordAnyUpgrade(): boolean {
+    for (const def of upgradeDefinitions) {
+      if (!isUpgradeMaxed(def.id) && isUpgradeUnlocked(def.id) && canAffordUpgrade(def.id, gameState.money)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private drawShopButton(): void {
     const ctx = this.game.ctx;
+    const canBuy = this.canAffordAnyUpgrade();
 
     if (this.isButtonHovered) {
       ctx.fillStyle = "#ffffff";
@@ -386,8 +403,8 @@ export class ShopSystem extends System {
     ctx.roundRect(this.buttonX, this.buttonY, BUTTON_SIZE, BUTTON_SIZE, 10);
     ctx.fill();
 
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = canBuy ? "#22c55e" : "#ffffff";
+    ctx.lineWidth = canBuy ? 3 : 2;
     ctx.stroke();
 
     ctx.font = "bold 14px Arial";
@@ -403,6 +420,17 @@ export class ShopSystem extends System {
       this.buttonX + BUTTON_SIZE / 2,
       this.buttonY + BUTTON_SIZE / 2
     );
+
+    if (canBuy) {
+      ctx.fillStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.arc(this.buttonX + BUTTON_SIZE - 5, this.buttonY + 5, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 10px Arial";
+      ctx.fillText("!", this.buttonX + BUTTON_SIZE - 5, this.buttonY + 6);
+    }
   }
 
   private drawConnectionLines(ctx: CanvasRenderingContext2D): void {
