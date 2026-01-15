@@ -42,6 +42,7 @@ export class CircleLifecycleSystem extends System {
           spawnDeathParticles(pos.x, pos.y, circle.color);
         }
         soundManager.play("death");
+        this.game.shake(8, 200);
 
         const newMax = Math.floor(health.max * 1.1);
         health.max = newMax;

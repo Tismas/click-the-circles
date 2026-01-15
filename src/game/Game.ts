@@ -23,6 +23,10 @@ export class Game {
 
   private isRunning: boolean = false;
 
+  private shakeIntensity: number = 0;
+  private shakeDuration: number = 0;
+  private shakeTime: number = 0;
+
   constructor() {
     this.canvas = document.createElement("canvas");
     this.canvas.id = "gameCanvas";
@@ -110,22 +114,44 @@ export class Game {
   }
 
   private update(dt: number): void {
+    if (this.shakeTime > 0) {
+      this.shakeTime -= dt;
+    }
+
     for (const system of this.systems) {
       system.update(dt);
     }
   }
 
+  shake(intensity: number, duration: number): void {
+    this.shakeIntensity = intensity;
+    this.shakeDuration = duration;
+    this.shakeTime = duration;
+  }
+
   private render(): void {
+    this.ctx.save();
+
+    if (this.shakeTime > 0) {
+      const progress = this.shakeTime / this.shakeDuration;
+      const currentIntensity = this.shakeIntensity * progress;
+      const offsetX = (Math.random() - 0.5) * 2 * currentIntensity;
+      const offsetY = (Math.random() - 0.5) * 2 * currentIntensity;
+      this.ctx.translate(offsetX, offsetY);
+    }
+
     const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
     gradient.addColorStop(0, "#1a1a2e");
     gradient.addColorStop(0.5, "#16213e");
     gradient.addColorStop(1, "#0f3460");
 
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(-10, -10, this.canvas.width + 20, this.canvas.height + 20);
 
     for (const system of this.systems) {
       system.render();
     }
+
+    this.ctx.restore();
   }
 }

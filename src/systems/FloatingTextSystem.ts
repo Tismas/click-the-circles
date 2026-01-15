@@ -3,6 +3,7 @@ import { System } from "../ecs/System";
 interface FloatingText {
   x: number;
   y: number;
+  startY: number;
   text: string;
   color: string;
   lifetime: number;
@@ -12,6 +13,21 @@ interface FloatingText {
 
 const floatingTexts: FloatingText[] = [];
 
+function easeOutBounce(x: number): number {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+
+  if (x < 1 / d1) {
+    return n1 * x * x;
+  } else if (x < 2 / d1) {
+    return n1 * (x -= 1.5 / d1) * x + 0.75;
+  } else if (x < 2.5 / d1) {
+    return n1 * (x -= 2.25 / d1) * x + 0.9375;
+  } else {
+    return n1 * (x -= 2.625 / d1) * x + 0.984375;
+  }
+}
+
 export function spawnFloatingText(
   x: number,
   y: number,
@@ -19,13 +35,14 @@ export function spawnFloatingText(
   color: string
 ): void {
   floatingTexts.push({
-    x,
+    x: x + (Math.random() - 0.5) * 20,
     y,
+    startY: y,
     text,
     color,
     lifetime: 1000,
     maxLifetime: 1000,
-    velocityY: -80,
+    velocityY: -120,
   });
 }
 
@@ -35,6 +52,7 @@ export class FloatingTextSystem extends System {
       const ft = floatingTexts[i];
       ft.lifetime -= dt;
       ft.y += (ft.velocityY * dt) / 1000;
+      ft.velocityY += (150 * dt) / 1000;
 
       if (ft.lifetime <= 0) {
         floatingTexts.splice(i, 1);
@@ -46,15 +64,27 @@ export class FloatingTextSystem extends System {
     const ctx = this.game.ctx;
 
     for (const ft of floatingTexts) {
-      const alpha = Math.max(0, ft.lifetime / ft.maxLifetime);
-      const scale = 0.8 + alpha * 0.4;
+      const progress = 1 - ft.lifetime / ft.maxLifetime;
+      const alpha = progress < 0.7 ? 1 : 1 - (progress - 0.7) / 0.3;
+      
+      const scaleProgress = Math.min(1, progress * 4);
+      const bounceScale = easeOutBounce(scaleProgress);
+      const baseScale = 0.5 + bounceScale * 0.5;
+      const fadeScale = progress > 0.7 ? 1 - (progress - 0.7) / 0.3 : 1;
+      const scale = baseScale * (0.8 + fadeScale * 0.2);
 
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.fillStyle = ft.color;
-      ctx.font = `bold ${Math.floor(24 * scale)}px Arial`;
+      ctx.font = `bold ${Math.floor(26 * scale)}px Arial`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+      
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      
       ctx.fillText(ft.text, ft.x, ft.y);
       ctx.restore();
     }

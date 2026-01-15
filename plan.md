@@ -492,7 +492,7 @@ Each step should be fully testable before moving on.
 
 ---
 
-#### Step 8.3: Visual Polish
+#### Step 8.3: Visual Polish ✅
 
 **Goal**: Cartoonish appealing style
 

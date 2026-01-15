@@ -4,6 +4,22 @@ import { getHealthScale } from "../utils/healthScale";
 
 const BALL_RADIUS = 15;
 
+function lightenColor(hex: string, amount: number): string {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, ((num >> 16) & 0xff) + amount);
+  const g = Math.min(255, ((num >> 8) & 0xff) + amount);
+  const b = Math.min(255, (num & 0xff) + amount);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function darkenColor(hex: string, amount: number): string {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, ((num >> 16) & 0xff) - amount);
+  const g = Math.max(0, ((num >> 8) & 0xff) - amount);
+  const b = Math.max(0, (num & 0xff) - amount);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 export class RenderSystem extends System {
   render(): void {
     const ctx = this.game.ctx;
@@ -25,13 +41,34 @@ export class RenderSystem extends System {
       const scale = getHealthScale(health);
       const displayRadius = circle.radius * scale;
 
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+      ctx.shadowBlur = 15;
+      ctx.shadowOffsetX = 5;
+      ctx.shadowOffsetY = 5;
+
+      const gradient = ctx.createRadialGradient(
+        pos.x - displayRadius * 0.3,
+        pos.y - displayRadius * 0.3,
+        0,
+        pos.x,
+        pos.y,
+        displayRadius
+      );
+      gradient.addColorStop(0, lightenColor(circle.color, 60));
+      gradient.addColorStop(0.5, circle.color);
+      gradient.addColorStop(1, darkenColor(circle.color, 40));
+
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, displayRadius, 0, Math.PI * 2);
-
-      ctx.fillStyle = circle.color;
+      ctx.fillStyle = gradient;
       ctx.fill();
 
+      ctx.restore();
+
       if (circle.outlineWidth > 0) {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, displayRadius, 0, Math.PI * 2);
         ctx.lineWidth = circle.outlineWidth;
         ctx.strokeStyle = circle.outlineColor;
         ctx.stroke();
@@ -42,7 +79,10 @@ export class RenderSystem extends System {
         ctx.font = `bold ${Math.max(16, displayRadius * 0.6)}px Arial`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+        ctx.shadowBlur = 4;
         ctx.fillText(Math.ceil(health.current).toString(), pos.x, pos.y);
+        ctx.shadowBlur = 0;
       }
     }
   }
@@ -54,14 +94,35 @@ export class RenderSystem extends System {
       const pos = getComponent(entity, "position");
       if (!pos) continue;
 
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+
+      const gradient = ctx.createRadialGradient(
+        pos.x - BALL_RADIUS * 0.3,
+        pos.y - BALL_RADIUS * 0.3,
+        0,
+        pos.x,
+        pos.y,
+        BALL_RADIUS
+      );
+      gradient.addColorStop(0, "#ffffff");
+      gradient.addColorStop(0.7, "#eeeeee");
+      gradient.addColorStop(1, "#cccccc");
+
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
-
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = gradient;
       ctx.fill();
 
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#dddddd";
+      ctx.restore();
+
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#aaaaaa";
       ctx.stroke();
     }
   }
