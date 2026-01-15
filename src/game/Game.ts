@@ -1,7 +1,10 @@
+import type { System } from "../ecs/System";
+
 export class Game {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   private fpsElement: HTMLDivElement;
+  private systems: System[] = [];
 
   private lastTime: number = 0;
   private deltaTime: number = 0;
@@ -96,9 +99,21 @@ export class Game {
     requestAnimationFrame(this.gameLoop);
   };
 
-  private fixedUpdate(): void {}
+  addSystem(system: System): void {
+    this.systems.push(system);
+  }
 
-  private update(_dt: number): void {}
+  private fixedUpdate(): void {
+    for (const system of this.systems) {
+      system.fixedUpdate();
+    }
+  }
+
+  private update(dt: number): void {
+    for (const system of this.systems) {
+      system.update(dt);
+    }
+  }
 
   private render(): void {
     const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvas.height);
@@ -108,5 +123,9 @@ export class Game {
 
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    for (const system of this.systems) {
+      system.render();
+    }
   }
 }
