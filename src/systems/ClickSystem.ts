@@ -4,6 +4,7 @@ import type { Entity } from "../ecs/Entity";
 import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
+import { spawnClickParticles } from "./ParticleSystem";
 import { getUpgradeLevel } from "../game/Upgrades";
 import { getHealthScale } from "../utils/healthScale";
 
@@ -75,6 +76,7 @@ export class ClickSystem extends System {
       if (damage > 0) {
         gameState.money += damage;
         spawnFloatingText(pos.x, pos.y, `+$${damage}`, "#ffd700");
+        spawnClickParticles(x, y);
       }
     }
   }

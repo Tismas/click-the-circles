@@ -22,3 +22,4 @@ HTML Canvas game written in typescript. No frameworks or libraries, just pure ty
 - Avoid using `!` - make sure you handle edge cases!
 - Update plan.md if the changes are requested during implementation
 - Avoid inline imports
+- When you remove something make sure everything connected to it is cleaned - do not leave unused code in the project

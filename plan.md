@@ -449,7 +449,7 @@ Each step should be fully testable before moving on.
 
 ---
 
-#### Step 8.1: Particle System
+#### Step 8.1: Particle System ✅
 
 **Goal**: Reusable particle effects
 
@@ -458,6 +458,7 @@ Each step should be fully testable before moving on.
 - Create `Particle` component (lifetime, velocity, color, size, alpha)
 - Create `ParticleSystem` for updating/rendering particles
 - Implement particle emitter helper functions
+- Do not use emojis for that
 - Add particles for:
   - Click impact (radial burst)
   - Circle death (explosion)

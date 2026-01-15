@@ -10,6 +10,7 @@ import {
   purchaseUpgrade,
   type UpgradeDefinition,
   type UpgradeBranch,
+  type UpgradeId,
 } from "../game/Upgrades";
 import { gameState } from "../game/GameState";
 import type { ClickSystem } from "./ClickSystem";
@@ -37,6 +38,8 @@ export class ShopSystem extends System {
   private clickSystem: ClickSystem | null = null;
   private lastTileCalcWidth: number = 0;
   private lastTileCalcHeight: number = 0;
+  private flashTimers = new Map<UpgradeId, number>();
+  private readonly FLASH_DURATION = 300;
 
   setClickSystem(clickSystem: ClickSystem): void {
     this.clickSystem = clickSystem;
@@ -80,6 +83,7 @@ export class ShopSystem extends System {
       const result = purchaseUpgrade(this.hoveredUpgrade.id, gameState.money);
       if (result.success) {
         gameState.money -= result.cost;
+        this.flashTimers.set(this.hoveredUpgrade.id, this.FLASH_DURATION);
       }
     }
   };
@@ -179,6 +183,17 @@ export class ShopSystem extends System {
         return { x: centerX + subOffset, y: centerY - offset };
       case "bottom":
         return { x: centerX + subOffset, y: centerY + offset };
+    }
+  }
+
+  update(dt: number): void {
+    for (const [id, time] of this.flashTimers) {
+      const newTime = time - dt;
+      if (newTime <= 0) {
+        this.flashTimers.delete(id);
+      } else {
+        this.flashTimers.set(id, newTime);
+      }
     }
   }
 
@@ -321,6 +336,15 @@ export class ShopSystem extends System {
 
     if (!unlocked) {
       ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+      ctx.fill();
+    }
+
+    const flashTime = this.flashTimers.get(def.id);
+    if (flashTime !== undefined) {
+      const flashAlpha = flashTime / this.FLASH_DURATION;
+      ctx.fillStyle = `rgba(255, 255, 100, ${flashAlpha * 0.7})`;
+      ctx.beginPath();
+      ctx.roundRect(x - halfSize, y - halfSize, TILE_SIZE, TILE_SIZE, 8);
       ctx.fill();
     }
 

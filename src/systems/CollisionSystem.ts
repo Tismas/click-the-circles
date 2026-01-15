@@ -3,6 +3,7 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { Entity } from "../ecs/Entity";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
+import { spawnBallHitParticles } from "./ParticleSystem";
 import { getHealthScale } from "../utils/healthScale";
 
 const BALL_RADIUS = 15;
@@ -66,6 +67,10 @@ export class CollisionSystem extends System {
 
             const nx = dx / distance;
             const ny = dy / distance;
+
+            const collisionX = circlePos.x + nx * circleRadius;
+            const collisionY = circlePos.y + ny * circleRadius;
+            spawnBallHitParticles(collisionX, collisionY);
 
             const dotProduct = ballVel.x * nx + ballVel.y * ny;
 

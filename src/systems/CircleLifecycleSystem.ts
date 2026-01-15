@@ -2,6 +2,7 @@ import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { gameState } from "../game/GameState";
 import { spawnFloatingText } from "./FloatingTextSystem";
+import { spawnDeathParticles } from "./ParticleSystem";
 import { getRandomCirclePosition } from "../utils/spawn";
 import { getUpgradeLevel } from "../game/Upgrades";
 
@@ -17,6 +18,7 @@ export class CircleLifecycleSystem extends System {
     for (const entity of entities) {
       const health = getComponent(entity, "health");
       const pos = getComponent(entity, "position");
+      const circle = getComponent(entity, "circle");
 
       if (!health || !pos) continue;
 
@@ -35,11 +37,14 @@ export class CircleLifecycleSystem extends System {
           );
         }
 
+        if (circle) {
+          spawnDeathParticles(pos.x, pos.y, circle.color);
+        }
+
         const newMax = Math.floor(health.max * 1.1);
         health.max = newMax;
         health.current = newMax;
 
-        const circle = getComponent(entity, "circle");
         if (circle) {
           const newPos = getRandomCirclePosition(
             this.game.canvas.width,

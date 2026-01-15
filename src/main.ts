@@ -9,6 +9,7 @@ import { ShopSystem } from "./systems/ShopSystem";
 import { PassiveIncomeSystem } from "./systems/PassiveIncomeSystem";
 import { MovementSystem } from "./systems/MovementSystem";
 import { CollisionSystem } from "./systems/CollisionSystem";
+import { ParticleSystem } from "./systems/ParticleSystem";
 import { initializeUpgrades } from "./game/Upgrades";
 import { spawnCircle } from "./utils/spawn";
 
@@ -24,6 +25,7 @@ game.addSystem(new PassiveIncomeSystem(game));
 game.addSystem(new MovementSystem(game));
 game.addSystem(new CollisionSystem(game));
 game.addSystem(new RenderSystem(game));
+game.addSystem(new ParticleSystem(game));
 game.addSystem(new HudSystem(game));
 game.addSystem(new FloatingTextSystem(game));
 game.addSystem(shopSystem);
