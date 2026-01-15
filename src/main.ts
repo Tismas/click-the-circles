@@ -2,6 +2,8 @@ import "./style.css";
 import { Game } from "./game/Game";
 import { RenderSystem } from "./systems/RenderSystem";
 import { ClickSystem } from "./systems/ClickSystem";
+import { FloatingTextSystem } from "./systems/FloatingTextSystem";
+import { HudSystem } from "./systems/HudSystem";
 import { createEntity } from "./ecs/Entity";
 import { addComponent } from "./ecs/Component";
 
@@ -9,6 +11,8 @@ const game = new Game();
 
 game.addSystem(new ClickSystem(game));
 game.addSystem(new RenderSystem(game));
+game.addSystem(new HudSystem(game));
+game.addSystem(new FloatingTextSystem(game));
 
 const testCircle = createEntity();
 addComponent(testCircle, "position", {

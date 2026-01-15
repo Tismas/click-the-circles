@@ -2,6 +2,8 @@ import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { Entity } from "../ecs/Entity";
 import type { Game } from "../game/Game";
+import { gameState } from "../game/GameState";
+import { spawnFloatingText } from "./FloatingTextSystem";
 
 export class ClickSystem extends System {
   private clickX: number = 0;
@@ -27,10 +29,16 @@ export class ClickSystem extends System {
 
     for (const entity of clickedEntities) {
       const health = getComponent(entity, "health");
-      if (!health) continue;
+      const pos = getComponent(entity, "position");
+      if (!health || !pos) continue;
 
-      const damage = 1;
+      const damage = Math.min(gameState.clickDamage, health.current);
       health.current = Math.max(0, health.current - damage);
+
+      if (damage > 0) {
+        gameState.money += damage;
+        spawnFloatingText(pos.x, pos.y, `+$${damage}`, "#ffd700");
+      }
     }
   }
 
