@@ -1,5 +1,8 @@
 import type { Entity } from "./Entity";
 
+const BALL_TYPES = ["white", "blue", "green"] as const;
+export type BallType = (typeof BALL_TYPES)[number];
+
 const COMPONENT_TYPES = [
   "position",
   "circle",
@@ -7,6 +10,7 @@ const COMPONENT_TYPES = [
   "velocity",
   "clickable",
   "ball",
+  "spike",
 ] as const;
 export type ComponentType = (typeof COMPONENT_TYPES)[number];
 
@@ -38,6 +42,12 @@ export interface Clickable {
 
 export interface Ball {
   damage: number;
+  ballType: BallType;
+}
+
+export interface Spike {
+  damage: number;
+  lifetime: number;
 }
 
 type ComponentMap = {
@@ -47,6 +57,7 @@ type ComponentMap = {
   velocity: Velocity;
   clickable: Clickable;
   ball: Ball;
+  spike: Spike;
 };
 
 type ComponentStorage = {
@@ -60,6 +71,7 @@ const storage: ComponentStorage = {
   velocity: new Map(),
   clickable: new Map(),
   ball: new Map(),
+  spike: new Map(),
 };
 
 const allEntities = new Set<Entity>();

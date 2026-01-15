@@ -1,4 +1,4 @@
-import type { Position } from "../ecs/Component";
+import type { Position, BallType } from "../ecs/Component";
 import { createEntity } from "../ecs/Entity";
 import {
   addComponent,
@@ -82,7 +82,11 @@ function doesOverlapCircles(x: number, y: number, radius: number): boolean {
 const BALL_BASE_SPEED = 150;
 const BALL_RADIUS = 15;
 
-export function spawnBall(canvasWidth: number, canvasHeight: number): void {
+function spawnBallOfType(
+  canvasWidth: number,
+  canvasHeight: number,
+  ballType: BallType
+): void {
   const padding = BALL_RADIUS + 50;
   let x: number;
   let y: number;
@@ -102,5 +106,33 @@ export function spawnBall(canvasWidth: number, canvasHeight: number): void {
   const entity = createEntity();
   addComponent(entity, "position", { x, y });
   addComponent(entity, "velocity", { x: vx, y: vy });
-  addComponent(entity, "ball", { damage: 1 });
+  addComponent(entity, "ball", { damage: 1, ballType });
+}
+
+export function spawnWhiteBall(canvasWidth: number, canvasHeight: number): void {
+  spawnBallOfType(canvasWidth, canvasHeight, "white");
+}
+
+export function spawnBlueBall(canvasWidth: number, canvasHeight: number): void {
+  spawnBallOfType(canvasWidth, canvasHeight, "blue");
+}
+
+export function spawnGreenBall(
+  canvasWidth: number,
+  canvasHeight: number
+): void {
+  spawnBallOfType(canvasWidth, canvasHeight, "green");
+}
+
+export function spawnSpike(
+  x: number,
+  y: number,
+  vx: number,
+  vy: number,
+  damage: number
+): void {
+  const entity = createEntity();
+  addComponent(entity, "position", { x, y });
+  addComponent(entity, "velocity", { x: vx, y: vy });
+  addComponent(entity, "spike", { damage, lifetime: 2000 });
 }

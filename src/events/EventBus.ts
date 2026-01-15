@@ -1,7 +1,23 @@
+type ChainSegment = { fromX: number; fromY: number; toX: number; toY: number };
+
 type EventMap = {
-  circleClicked: { circleX: number; circleY: number; clickX: number; clickY: number; damage: number };
-  circleCollided: { circleX: number; circleY: number; circleRadius: number; collisionX: number; collisionY: number; damage: number };
+  circleClicked: {
+    circleX: number;
+    circleY: number;
+    clickX: number;
+    clickY: number;
+    damage: number;
+  };
+  circleCollided: {
+    circleX: number;
+    circleY: number;
+    circleRadius: number;
+    collisionX: number;
+    collisionY: number;
+    damage: number;
+  };
   circleKilled: { x: number; y: number; color: string; bonusMoney: number };
+  chainLightning: { segments: ChainSegment[] };
   shopOpened: undefined;
   upgradePurchased: undefined;
   gameReset: undefined;

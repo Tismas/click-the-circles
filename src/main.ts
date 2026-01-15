@@ -11,6 +11,7 @@ import { MovementSystem } from "./systems/MovementSystem";
 import { CollisionSystem } from "./systems/CollisionSystem";
 import { ParticleSystem } from "./systems/ParticleSystem";
 import { TutorialSystem } from "./systems/TutorialSystem";
+import { SpikeSystem } from "./systems/SpikeSystem";
 import { initializeUpgrades } from "./game/Upgrades";
 import { loadGame, saveGame, spawnEntities } from "./game/SaveManager";
 
@@ -21,6 +22,7 @@ game.addSystem(new CircleLifecycleSystem(game));
 game.addSystem(new PassiveIncomeSystem(game));
 game.addSystem(new MovementSystem(game));
 game.addSystem(new CollisionSystem(game));
+game.addSystem(new SpikeSystem(game));
 game.addSystem(new RenderSystem(game));
 game.addSystem(new ParticleSystem(game));
 game.addSystem(new HudSystem(game));

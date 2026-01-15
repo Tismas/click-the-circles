@@ -3,7 +3,7 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { gameState } from "../game/GameState";
 import { soundManager } from "../audio/SoundManager";
 import { getRandomCirclePosition } from "../utils/spawn";
-import { getUpgradeLevel } from "../game/Upgrades";
+import { getKillBonusPercent } from "../game/Upgrades";
 import { eventBus } from "../events/EventBus";
 
 export class CircleLifecycleSystem extends System {
@@ -23,16 +23,20 @@ export class CircleLifecycleSystem extends System {
       if (!health || !pos) continue;
 
       if (health.current <= 0) {
-        const killBonusLevel = getUpgradeLevel("killBonus");
-        const bonusPercent = killBonusLevel * 0.1;
+        const bonusPercent = getKillBonusPercent();
         const bonusMoney = Math.floor(health.max * bonusPercent);
-        
+
         if (bonusMoney > 0) {
           gameState.money += bonusMoney;
         }
 
         if (circle) {
-          eventBus.emit("circleKilled", { x: pos.x, y: pos.y, color: circle.color, bonusMoney });
+          eventBus.emit("circleKilled", {
+            x: pos.x,
+            y: pos.y,
+            color: circle.color,
+            bonusMoney,
+          });
         }
         soundManager.play("death");
 

@@ -1,6 +1,6 @@
 import type { UpgradeId } from "./Upgrades";
 
-export const CURRENT_SAVE_VERSION = 5;
+export const CURRENT_SAVE_VERSION = 8;
 
 export interface CircleHealth {
   current: number;
@@ -18,14 +18,22 @@ export interface SaveData {
 interface SaveDataV3 {
   version: 3;
   money: number;
-  upgradeLevels: Record<UpgradeId, number>;
+  upgradeLevels: Record<string, number>;
 }
 
 interface SaveDataV4 {
   version: 4;
   money: number;
-  upgradeLevels: Record<UpgradeId, number>;
+  upgradeLevels: Record<string, number>;
   circleHealths: CircleHealth[];
+}
+
+interface SaveDataV5 {
+  version: 5;
+  money: number;
+  upgradeLevels: Record<string, number>;
+  circleHealths: CircleHealth[];
+  shownHints: string[];
 }
 
 type MigrationFn = (data: unknown) => unknown;
@@ -45,7 +53,7 @@ const migrations: Record<number, MigrationFn> = {
       circleHealths,
     };
   },
-  4: (data: unknown): SaveData => {
+  4: (data: unknown): SaveDataV5 => {
     const oldData = data as SaveDataV4;
     return {
       version: 5,
@@ -53,6 +61,89 @@ const migrations: Record<number, MigrationFn> = {
       upgradeLevels: oldData.upgradeLevels,
       circleHealths: oldData.circleHealths,
       shownHints: [],
+    };
+  },
+  5: (data: unknown): SaveData => {
+    const oldData = data as SaveDataV5;
+    const newUpgradeLevels: Record<string, number> = {
+      ...oldData.upgradeLevels,
+    };
+
+    const newUpgradeIds = [
+      "whiteBallCount",
+      "blueBall",
+      "blueBallDamage",
+      "blueBallSpeed",
+      "greenBall",
+      "greenBallDamage",
+      "greenBallSpeed",
+      "chainLightning",
+      "chainLightningCount",
+      "chainLightningDamage",
+      "tickSpeed2",
+      "valueUpgrade2",
+      "doubleMining",
+      "clickDamage2",
+      "killBonus2",
+    ];
+
+    for (const id of newUpgradeIds) {
+      if (!(id in newUpgradeLevels)) {
+        newUpgradeLevels[id] = 0;
+      }
+    }
+
+    return {
+      version: 6,
+      money: oldData.money,
+      upgradeLevels: newUpgradeLevels as Record<UpgradeId, number>,
+      circleHealths: oldData.circleHealths,
+      shownHints: oldData.shownHints,
+    };
+  },
+  6: (data: unknown): SaveData => {
+    const oldData = data as SaveData;
+    const newUpgradeLevels: Record<string, number> = {
+      ...oldData.upgradeLevels,
+    };
+
+    const newUpgradeIds = [
+      "moreCircles2",
+      "moreCircles3",
+      "blueBallTargeting",
+      "greenBallSpikes",
+    ];
+
+    for (const id of newUpgradeIds) {
+      if (!(id in newUpgradeLevels)) {
+        newUpgradeLevels[id] = 0;
+      }
+    }
+
+    return {
+      version: 7,
+      money: oldData.money,
+      upgradeLevels: newUpgradeLevels as Record<UpgradeId, number>,
+      circleHealths: oldData.circleHealths,
+      shownHints: oldData.shownHints,
+    };
+  },
+  7: (data: unknown): SaveData => {
+    const oldData = data as SaveData;
+    const newUpgradeLevels: Record<string, number> = {
+      ...oldData.upgradeLevels,
+    };
+
+    if (!("moreCircles4" in newUpgradeLevels)) {
+      newUpgradeLevels["moreCircles4"] = 0;
+    }
+
+    return {
+      version: 8,
+      money: oldData.money,
+      upgradeLevels: newUpgradeLevels as Record<UpgradeId, number>,
+      circleHealths: oldData.circleHealths,
+      shownHints: oldData.shownHints,
     };
   },
 };

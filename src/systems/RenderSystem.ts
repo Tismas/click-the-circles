@@ -1,8 +1,37 @@
 import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
+import type { BallType } from "../ecs/Component";
 import { getHealthScale } from "../utils/healthScale";
 
 const BALL_RADIUS = 15;
+
+type BallColors = {
+  light: string;
+  mid: string;
+  dark: string;
+  stroke: string;
+};
+
+const BALL_COLOR_MAP: Record<BallType, BallColors> = {
+  white: {
+    light: "#ffffff",
+    mid: "#eeeeee",
+    dark: "#cccccc",
+    stroke: "#aaaaaa",
+  },
+  blue: {
+    light: "#87ceeb",
+    mid: "#4da6ff",
+    dark: "#2980b9",
+    stroke: "#1a5276",
+  },
+  green: {
+    light: "#90ee90",
+    mid: "#2ecc71",
+    dark: "#27ae60",
+    stroke: "#1e8449",
+  },
+};
 
 function lightenColor(hex: string, amount: number): string {
   const num = parseInt(hex.slice(1), 16);
@@ -92,7 +121,10 @@ export class RenderSystem extends System {
 
     for (const entity of balls) {
       const pos = getComponent(entity, "position");
-      if (!pos) continue;
+      const ball = getComponent(entity, "ball");
+      if (!pos || !ball) continue;
+
+      const colors = BALL_COLOR_MAP[ball.ballType];
 
       ctx.save();
       ctx.shadowColor = "rgba(0, 0, 0, 0.3)";
@@ -108,9 +140,9 @@ export class RenderSystem extends System {
         pos.y,
         BALL_RADIUS
       );
-      gradient.addColorStop(0, "#ffffff");
-      gradient.addColorStop(0.7, "#eeeeee");
-      gradient.addColorStop(1, "#cccccc");
+      gradient.addColorStop(0, colors.light);
+      gradient.addColorStop(0.7, colors.mid);
+      gradient.addColorStop(1, colors.dark);
 
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
@@ -122,7 +154,7 @@ export class RenderSystem extends System {
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, BALL_RADIUS, 0, Math.PI * 2);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "#aaaaaa";
+      ctx.strokeStyle = colors.stroke;
       ctx.stroke();
     }
   }

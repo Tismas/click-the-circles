@@ -573,22 +573,101 @@ Each step should be fully testable before moving on.
 
 ---
 
-## Upgrade Tree Visual Reference
+### Phase 10: Extended Upgrades ✅
 
-```
-                    [Mining Drone]
-                         |
-              [Tick Speed] [Value]
-                         |
-                         |
-[Ball DMG]──[White Ball]─┼─[Click DMG]──[Click Radius]──[More Circles]
-[Ball Speed]─────────────┼─────────────────────────────────────────────
-                         |
-                         |
-                    [Click Hold]
-                         |
-                   [Hold Speed]
-```
+---
+
+#### Step 10.1: White Ball Count Upgrade ✅
+
+**Goal**: Spawn additional white balls
+
+**Tasks**:
+
+- Add "More White Balls" upgrade (max 5, cost 400$)
+- Unlocks after White Ball purchased
+- Each level spawns +1 white ball
+
+**Test**: Buy upgrade → new white ball appears
+
+---
+
+#### Step 10.2: Blue Ball ✅
+
+**Goal**: Ball that targets circles on wall bounce
+
+**Tasks**:
+
+- Add "Blue Ball" upgrade (max 1, cost 800$)
+- Unlocks after Ball Damage maxed
+- Blue ball redirects toward nearest circle when bouncing off walls
+- Separate damage and speed upgrade tracks for blue ball
+
+**Test**: Buy blue ball → ball visually blue, redirects to circles on wall bounce
+
+---
+
+#### Step 10.3: Green Ball with Spikes ✅
+
+**Goal**: Ball that spawns spike projectiles on hit
+
+**Tasks**:
+
+- Add "Green Ball" upgrade (max 1, cost 1500$)
+- Unlocks after Blue Ball Damage maxed
+- When green ball hits a circle, spawn 8 spike projectiles in all directions
+- Spikes deal same damage as green ball, have limited lifetime
+- Separate damage and speed upgrades (affect both ball and spikes)
+- Add SpikeSystem for movement and collision
+- Visual: pointed arrow-like projectiles in green
+
+**Test**: Buy green ball → ball is green, spawns spikes on circle hit
+
+---
+
+#### Step 10.4: Chain Lightning ✅
+
+**Goal**: Clicks chain electric damage to nearby circles
+
+**Tasks**:
+
+- Add "Chain Lightning" upgrade (max 1, cost 500$)
+- Unlocks after Click Radius maxed
+- When clicking a circle, lightning chains to closest circles
+- Chain Count upgrade: +1 target per level (starts at 1, max 5)
+- Chain Damage upgrade: 10%-120% of click damage per chain (+10% per level)
+- Visual: electric bolt effect between targets
+- Add chainLightning event to EventBus
+
+**Test**: Click circle with upgrade → lightning visually chains, damages others
+
+---
+
+#### Step 10.5: Tier 2 Duplicates ✅
+
+**Goal**: Extend progression with tier 2 versions
+
+**Tasks**:
+
+- Click Damage II: +1 damage per level (max 10, cost 1000$)
+- Kill Bonus II: +10% kill bonus per level (max 10, cost 2000$)
+- Tick Speed II: -1 tick per level (max 15, cost 500$)
+- Value Upgrade II: +1$/tick per level (max 15, cost 500$)
+
+**Test**: Buy tier 2 upgrades → stats increase further
+
+---
+
+#### Step 10.6: Double Mining ✅
+
+**Goal**: Expensive endgame passive income multiplier
+
+**Tasks**:
+
+- Add "Double Mining" upgrade (max 1, cost 10000$)
+- Unlocks after Tick Speed II maxed
+- Doubles all passive mining income
+
+**Test**: Buy upgrade → passive income doubles
 
 ---
 

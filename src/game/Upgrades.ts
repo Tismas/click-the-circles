@@ -1,19 +1,44 @@
 import { game } from "./gameInstance";
-import { spawnCircle, spawnBall } from "../utils/spawn";
+import {
+  spawnCircle,
+  spawnWhiteBall,
+  spawnBlueBall,
+  spawnGreenBall,
+} from "../utils/spawn";
 
 export type UpgradeId =
   | "clickDamage"
   | "killBonus"
   | "clickRadius"
   | "moreCircles"
+  | "moreCircles2"
+  | "moreCircles3"
+  | "moreCircles4"
   | "whiteBall"
+  | "whiteBallCount"
   | "ballDamage"
   | "ballSpeed"
+  | "blueBall"
+  | "blueBallTargeting"
+  | "blueBallDamage"
+  | "blueBallSpeed"
+  | "greenBall"
+  | "greenBallSpikes"
+  | "greenBallDamage"
+  | "greenBallSpeed"
+  | "chainLightning"
+  | "chainLightningCount"
+  | "chainLightningDamage"
   | "miningDrone"
   | "tickSpeed"
   | "valueUpgrade"
+  | "tickSpeed2"
+  | "valueUpgrade2"
+  | "doubleMining"
   | "clickHold"
-  | "holdSpeed";
+  | "holdSpeed"
+  | "clickDamage2"
+  | "killBonus2";
 
 export type UpgradeBranch = "left" | "top" | "right" | "bottom";
 
@@ -45,7 +70,11 @@ export function getUpgradeLevel(id: UpgradeId): number {
 }
 
 export function getClickDamage(): number {
-  return 1 + getUpgradeLevel("clickDamage");
+  return 1 + getUpgradeLevel("clickDamage") + getUpgradeLevel("clickDamage2");
+}
+
+export function getKillBonusPercent(): number {
+  return (getUpgradeLevel("killBonus") + getUpgradeLevel("killBonus2")) * 0.1;
 }
 
 export function getRadiusMulti(): number {
@@ -57,7 +86,35 @@ export function getBallDamage(): number {
 }
 
 export function getBallSpeedMulti(): number {
-  return 1 + getUpgradeLevel("ballSpeed") * 1.5;
+  return 1 + getUpgradeLevel("ballSpeed") * 0.15;
+}
+
+export function getBlueBallDamage(): number {
+  return 1 + getUpgradeLevel("blueBallDamage");
+}
+
+export function getBlueBallSpeedMulti(): number {
+  return 1 + getUpgradeLevel("blueBallSpeed") * 0.15;
+}
+
+export function getGreenBallDamage(): number {
+  return 1 + getUpgradeLevel("greenBallDamage");
+}
+
+export function getGreenBallSpeedMulti(): number {
+  return 1 + getUpgradeLevel("greenBallSpeed") * 0.15;
+}
+
+export function getChainLightningCount(): number {
+  return 1 + getUpgradeLevel("chainLightningCount");
+}
+
+export function getChainLightningDamagePercent(): number {
+  return 0.1 + getUpgradeLevel("chainLightningDamage") * 0.1;
+}
+
+export function getMiningMultiplier(): number {
+  return getUpgradeLevel("doubleMining") > 0 ? 2 : 1;
 }
 
 export function isUpgradeMaxed(id: UpgradeId): boolean {
@@ -135,6 +192,7 @@ export function setAllUpgradeLevels(levels: Record<UpgradeId, number>): void {
 }
 
 const upgradeInputs: UpgradeInput[] = [
+  // === RIGHT BRANCH (Click upgrades) ===
   {
     id: "clickDamage",
     name: "Click Damage",
@@ -168,15 +226,106 @@ const upgradeInputs: UpgradeInput[] = [
     },
   },
   {
+    id: "moreCircles2",
+    name: "More Circles II",
+    description: "Spawns an additional circle",
+    icon: "➕",
+    maxLevel: 5,
+    baseCost: 500,
+    branch: "right",
+    parent: "moreCircles",
+    onPurchase: () => {
+      spawnCircle(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
+    id: "moreCircles3",
+    name: "More Circles III",
+    description: "Spawns an additional circle",
+    icon: "➕",
+    maxLevel: 5,
+    baseCost: 2000,
+    branch: "right",
+    parent: "moreCircles2",
+    onPurchase: () => {
+      spawnCircle(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
     id: "clickRadius",
     name: "Click Radius",
-    description: "Increases click radius by 10%",
+    description: "Increases click radius by 50%",
     icon: "⭕",
     maxLevel: 5,
     baseCost: 75,
     branch: "right",
     parent: "moreCircles",
   },
+  {
+    id: "chainLightning",
+    name: "Chain Lightning",
+    description: "Clicks chain to nearby circles",
+    icon: "⚡",
+    maxLevel: 1,
+    baseCost: 500,
+    branch: "right",
+    parent: "clickRadius",
+  },
+  {
+    id: "chainLightningCount",
+    name: "Chain Count",
+    description: "Lightning chains to +1 more target",
+    icon: "🔗",
+    maxLevel: 5,
+    baseCost: 300,
+    branch: "right",
+    parent: "chainLightning",
+  },
+  {
+    id: "chainLightningDamage",
+    name: "Chain Damage",
+    description: "Chain deals +10% click damage (10%-120%)",
+    icon: "💥",
+    maxLevel: 11,
+    baseCost: 250,
+    branch: "right",
+    parent: "chainLightning",
+  },
+  {
+    id: "clickDamage2",
+    name: "Click Damage II",
+    description: "Increases click damage by 1",
+    icon: "👆",
+    maxLevel: 10,
+    baseCost: 1000,
+    branch: "right",
+    parent: "chainLightningCount",
+  },
+  {
+    id: "moreCircles4",
+    name: "More Circles IV",
+    description: "Spawns an additional circle",
+    icon: "➕",
+    maxLevel: 5,
+    baseCost: 5000,
+    branch: "right",
+    parent: "clickDamage2",
+    onPurchase: () => {
+      spawnCircle(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
+    id: "killBonus2",
+    name: "Kill Bonus II",
+    description: "Gain 10% of circle max HP as bonus on kill",
+    icon: "💀",
+    maxLevel: 10,
+    baseCost: 2000,
+    branch: "right",
+    parent: "clickDamage2",
+  },
+
+  // === LEFT BRANCH (Ball upgrades) ===
   {
     id: "whiteBall",
     name: "White Ball",
@@ -186,13 +335,26 @@ const upgradeInputs: UpgradeInput[] = [
     baseCost: 200,
     branch: "left",
     onPurchase: () => {
-      spawnBall(game.canvas.width, game.canvas.height);
+      spawnWhiteBall(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
+    id: "whiteBallCount",
+    name: "More White Balls",
+    description: "Spawns an additional white ball",
+    icon: "⚪",
+    maxLevel: 5,
+    baseCost: 400,
+    branch: "left",
+    parent: "whiteBall",
+    onPurchase: () => {
+      spawnWhiteBall(game.canvas.width, game.canvas.height);
     },
   },
   {
     id: "ballDamage",
     name: "Ball Damage",
-    description: "Increases ball damage by 1",
+    description: "Increases white ball damage by 1",
     icon: "💥",
     maxLevel: 10,
     baseCost: 50,
@@ -202,13 +364,101 @@ const upgradeInputs: UpgradeInput[] = [
   {
     id: "ballSpeed",
     name: "Ball Speed",
-    description: "Increases ball speed by 5%",
-    icon: "⚡",
+    description: "Increases white ball speed by 15%",
+    icon: "💨",
     maxLevel: 10,
     baseCost: 50,
     branch: "left",
     parent: "whiteBall",
   },
+  {
+    id: "blueBall",
+    name: "Blue Ball",
+    description: "Spawns a blue bouncing ball",
+    icon: "🔵",
+    maxLevel: 1,
+    baseCost: 800,
+    branch: "left",
+    parent: "ballDamage",
+    onPurchase: () => {
+      spawnBlueBall(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
+    id: "blueBallTargeting",
+    name: "Blue Targeting",
+    description: "Blue ball targets closest circle on wall bounce",
+    icon: "🎯",
+    maxLevel: 1,
+    baseCost: 600,
+    branch: "left",
+    parent: "blueBall",
+  },
+  {
+    id: "blueBallDamage",
+    name: "Blue Ball Damage",
+    description: "Increases blue ball damage by 1",
+    icon: "💥",
+    maxLevel: 10,
+    baseCost: 200,
+    branch: "left",
+    parent: "blueBall",
+  },
+  {
+    id: "blueBallSpeed",
+    name: "Blue Ball Speed",
+    description: "Increases blue ball speed by 15%",
+    icon: "💨",
+    maxLevel: 10,
+    baseCost: 200,
+    branch: "left",
+    parent: "blueBall",
+  },
+  {
+    id: "greenBall",
+    name: "Green Ball",
+    description: "Spawns a green bouncing ball",
+    icon: "🟢",
+    maxLevel: 1,
+    baseCost: 1500,
+    branch: "left",
+    parent: "blueBallDamage",
+    onPurchase: () => {
+      spawnGreenBall(game.canvas.width, game.canvas.height);
+    },
+  },
+  {
+    id: "greenBallSpikes",
+    name: "Spike Burst",
+    description: "Green ball spawns spikes in all directions on hit",
+    icon: "💢",
+    maxLevel: 1,
+    baseCost: 1000,
+    branch: "left",
+    parent: "greenBall",
+  },
+  {
+    id: "greenBallDamage",
+    name: "Green Ball Damage",
+    description: "Increases green ball & spike damage by 1",
+    icon: "💥",
+    maxLevel: 10,
+    baseCost: 400,
+    branch: "left",
+    parent: "greenBall",
+  },
+  {
+    id: "greenBallSpeed",
+    name: "Green Ball Speed",
+    description: "Increases green ball & spike speed by 15%",
+    icon: "💨",
+    maxLevel: 10,
+    baseCost: 400,
+    branch: "left",
+    parent: "greenBall",
+  },
+
+  // === TOP BRANCH (Passive income) ===
   {
     id: "miningDrone",
     name: "Mining Drone",
@@ -238,6 +488,38 @@ const upgradeInputs: UpgradeInput[] = [
     branch: "top",
     parent: "miningDrone",
   },
+  {
+    id: "tickSpeed2",
+    name: "Tick Speed II",
+    description: "Decreases generation cooldown by 1 tick",
+    icon: "⏱️",
+    maxLevel: 4,
+    baseCost: 500,
+    branch: "top",
+    parent: "tickSpeed",
+  },
+  {
+    id: "valueUpgrade2",
+    name: "Value Upgrade II",
+    description: "Increases passive income by $1/tick",
+    icon: "💰",
+    maxLevel: 15,
+    baseCost: 500,
+    branch: "top",
+    parent: "valueUpgrade",
+  },
+  {
+    id: "doubleMining",
+    name: "Double Mining",
+    description: "Doubles all passive mining income",
+    icon: "💎",
+    maxLevel: 1,
+    baseCost: 10000,
+    branch: "top",
+    parent: "tickSpeed2",
+  },
+
+  // === BOTTOM BRANCH (Click hold) ===
   {
     id: "clickHold",
     name: "Click Hold",

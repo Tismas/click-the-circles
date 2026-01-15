@@ -3,9 +3,14 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { Entity } from "../ecs/Entity";
 import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
-import { getClickDamage, getRadiusMulti } from "../game/Upgrades";
+import {
+  getClickDamage,
+  getRadiusMulti,
+  getUpgradeLevel,
+  getChainLightningCount,
+  getChainLightningDamagePercent,
+} from "../game/Upgrades";
 import { soundManager } from "../audio/SoundManager";
-import { getUpgradeLevel } from "../game/Upgrades";
 import { getHealthScale } from "../utils/healthScale";
 import { eventBus } from "../events/EventBus";
 
@@ -24,8 +29,12 @@ export class ClickSystem extends System {
     this.game.canvas.addEventListener("mouseup", this.handleMouseUp);
     this.game.canvas.addEventListener("mouseleave", this.handleMouseUp);
 
-    this.game.canvas.addEventListener("touchstart", this.handleTouchStart, { passive: false });
-    this.game.canvas.addEventListener("touchmove", this.handleTouchMove, { passive: false });
+    this.game.canvas.addEventListener("touchstart", this.handleTouchStart, {
+      passive: false,
+    });
+    this.game.canvas.addEventListener("touchmove", this.handleTouchMove, {
+      passive: false,
+    });
     this.game.canvas.addEventListener("touchend", this.handleTouchEnd);
   }
 
@@ -104,12 +113,104 @@ export class ClickSystem extends System {
 
       if (damage > 0) {
         gameState.money += damage;
-        eventBus.emit("circleClicked", { circleX: pos.x, circleY: pos.y, clickX: x, clickY: y, damage });
+        eventBus.emit("circleClicked", {
+          circleX: pos.x,
+          circleY: pos.y,
+          clickX: x,
+          clickY: y,
+          damage,
+        });
         soundManager.play("click");
+
+        if (getUpgradeLevel("chainLightning") > 0) {
+          this.applyChainLightning(entity, pos.x, pos.y);
+        }
       }
     }
 
     this.updateHoverState();
+  }
+
+  private applyChainLightning(
+    sourceEntity: Entity,
+    sourceX: number,
+    sourceY: number
+  ): void {
+    const chainCount = getChainLightningCount();
+    const damagePercent = getChainLightningDamagePercent();
+    const chainDamage = Math.max(
+      1,
+      Math.floor(getClickDamage() * damagePercent)
+    );
+
+    const hitEntities = new Set<Entity>([sourceEntity]);
+    const segments: {
+      fromX: number;
+      fromY: number;
+      toX: number;
+      toY: number;
+    }[] = [];
+    let currentX = sourceX;
+    let currentY = sourceY;
+
+    for (let i = 0; i < chainCount; i++) {
+      const circles = getEntitiesWithComponents(
+        "position",
+        "circle",
+        "health",
+        "clickable"
+      );
+
+      let closestEntity: Entity | null = null;
+      let closestDist = Infinity;
+      let closestX = 0;
+      let closestY = 0;
+
+      for (const entity of circles) {
+        if (hitEntities.has(entity)) continue;
+
+        const pos = getComponent(entity, "position");
+        const health = getComponent(entity, "health");
+        if (!pos || !health || health.current <= 0) continue;
+
+        const dx = pos.x - currentX;
+        const dy = pos.y - currentY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestEntity = entity;
+          closestX = pos.x;
+          closestY = pos.y;
+        }
+      }
+
+      if (closestEntity === null) break;
+
+      hitEntities.add(closestEntity);
+      segments.push({
+        fromX: currentX,
+        fromY: currentY,
+        toX: closestX,
+        toY: closestY,
+      });
+
+      const health = getComponent(closestEntity, "health");
+      if (health) {
+        const actualDamage = Math.min(chainDamage, health.current);
+        health.current = Math.max(0, health.current - actualDamage);
+        if (actualDamage > 0) {
+          gameState.money += actualDamage;
+        }
+      }
+
+      currentX = closestX;
+      currentY = closestY;
+    }
+
+    if (segments.length > 0) {
+      eventBus.emit("chainLightning", { segments });
+    }
   }
 
   private updateHoverState(): void {

@@ -4,7 +4,12 @@ import {
   setAllUpgradeLevels,
   getUpgradeLevel,
 } from "./Upgrades";
-import { spawnCircleWithHealth, spawnBall } from "../utils/spawn";
+import {
+  spawnCircleWithHealth,
+  spawnWhiteBall,
+  spawnBlueBall,
+  spawnGreenBall,
+} from "../utils/spawn";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { game } from "./gameInstance";
 import {
@@ -76,7 +81,10 @@ export function loadGame(): boolean {
 }
 
 function spawnEntitiesFromSave(circleHealths: CircleHealth[]): void {
-  const ballCount = getUpgradeLevel("whiteBall");
+  const whiteBallCount =
+    getUpgradeLevel("whiteBall") + getUpgradeLevel("whiteBallCount");
+  const blueBallCount = getUpgradeLevel("blueBall");
+  const greenBallCount = getUpgradeLevel("greenBall");
 
   for (const health of circleHealths) {
     spawnCircleWithHealth(
@@ -86,20 +94,40 @@ function spawnEntitiesFromSave(circleHealths: CircleHealth[]): void {
       health.max
     );
   }
-  for (let i = 0; i < ballCount; i++) {
-    spawnBall(game.canvas.width, game.canvas.height);
+  for (let i = 0; i < whiteBallCount; i++) {
+    spawnWhiteBall(game.canvas.width, game.canvas.height);
+  }
+  for (let i = 0; i < blueBallCount; i++) {
+    spawnBlueBall(game.canvas.width, game.canvas.height);
+  }
+  for (let i = 0; i < greenBallCount; i++) {
+    spawnGreenBall(game.canvas.width, game.canvas.height);
   }
 }
 
 export function spawnEntities(): void {
-  const circleCount = 1 + getUpgradeLevel("moreCircles");
-  const ballCount = getUpgradeLevel("whiteBall");
+  const circleCount =
+    1 +
+    getUpgradeLevel("moreCircles") +
+    getUpgradeLevel("moreCircles2") +
+    getUpgradeLevel("moreCircles3") +
+    getUpgradeLevel("moreCircles4");
+  const whiteBallCount =
+    getUpgradeLevel("whiteBall") + getUpgradeLevel("whiteBallCount");
+  const blueBallCount = getUpgradeLevel("blueBall");
+  const greenBallCount = getUpgradeLevel("greenBall");
 
   for (let i = 0; i < circleCount; i++) {
     spawnCircleWithHealth(game.canvas.width, game.canvas.height, 10, 10);
   }
-  for (let i = 0; i < ballCount; i++) {
-    spawnBall(game.canvas.width, game.canvas.height);
+  for (let i = 0; i < whiteBallCount; i++) {
+    spawnWhiteBall(game.canvas.width, game.canvas.height);
+  }
+  for (let i = 0; i < blueBallCount; i++) {
+    spawnBlueBall(game.canvas.width, game.canvas.height);
+  }
+  for (let i = 0; i < greenBallCount; i++) {
+    spawnGreenBall(game.canvas.width, game.canvas.height);
   }
 }
 
