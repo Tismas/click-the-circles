@@ -1,4 +1,6 @@
 import { System } from "../ecs/System";
+import type { Game } from "../game/Game";
+import { eventBus } from "../events/EventBus";
 
 interface Particle {
   x: number;
@@ -15,7 +17,7 @@ interface Particle {
 
 const particles: Particle[] = [];
 
-export function spawnParticle(config: {
+function spawnParticle(config: {
   x: number;
   y: number;
   vx: number;
@@ -40,7 +42,7 @@ export function spawnParticle(config: {
   });
 }
 
-export function spawnParticleBurst(config: {
+function spawnParticleBurst(config: {
   x: number;
   y: number;
   count: number;
@@ -72,7 +74,7 @@ export function spawnParticleBurst(config: {
   }
 }
 
-export function spawnClickParticles(x: number, y: number): void {
+function spawnClickParticles(x: number, y: number): void {
   spawnParticleBurst({
     x,
     y,
@@ -85,7 +87,7 @@ export function spawnClickParticles(x: number, y: number): void {
   });
 }
 
-export function spawnDeathParticles(x: number, y: number, color: string): void {
+function spawnDeathParticles(x: number, y: number, color: string): void {
   spawnParticleBurst({
     x,
     y,
@@ -111,7 +113,7 @@ export function spawnDeathParticles(x: number, y: number, color: string): void {
   });
 }
 
-export function spawnBallHitParticles(x: number, y: number): void {
+function spawnBallHitParticles(x: number, y: number): void {
   spawnParticleBurst({
     x,
     y,
@@ -125,6 +127,12 @@ export function spawnBallHitParticles(x: number, y: number): void {
 }
 
 export class ParticleSystem extends System {
+  constructor(game: Game) {
+    super(game);
+    eventBus.on("circleClicked", ({ clickX, clickY }) => spawnClickParticles(clickX, clickY));
+    eventBus.on("circleKilled", ({ x, y, color }) => spawnDeathParticles(x, y, color));
+    eventBus.on("circleCollided", ({ collisionX, collisionY }) => spawnBallHitParticles(collisionX, collisionY));
+  }
   update(dt: number): void {
     const dtSeconds = dt / 1000;
 

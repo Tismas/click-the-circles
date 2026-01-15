@@ -1,4 +1,5 @@
 import type { System } from "../ecs/System";
+import { eventBus } from "../events/EventBus";
 
 export class Game {
   canvas: HTMLCanvasElement;
@@ -51,6 +52,10 @@ export class Game {
 
     this.handleResize();
     window.addEventListener("resize", () => this.handleResize());
+    
+    eventBus.on("circleKilled", () => {
+      this.shake(8, 200);
+    });
   }
 
   private handleResize(): void {

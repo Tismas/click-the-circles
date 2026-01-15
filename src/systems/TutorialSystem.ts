@@ -1,6 +1,8 @@
 import { System } from "../ecs/System";
+import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
 import { saveGame } from "../game/SaveManager";
+import { eventBus } from "../events/EventBus";
 
 const HINTS = [
   { trigger: "start", text: "Click circles to damage them and earn money!" },
@@ -28,6 +30,13 @@ export class TutorialSystem extends System {
   private currentHint: { trigger: HintTrigger; text: string } | null = null;
   private hintQueue: HintTrigger[] = [];
 
+  constructor(game: Game) {
+    super(game);
+    eventBus.on("shopOpened", () => this.onShopOpened());
+    eventBus.on("upgradePurchased", () => this.onPurchase());
+    eventBus.on("gameReset", () => this.reset());
+  }
+
   init(): void {
     this.queueHint("start");
   }
@@ -35,6 +44,7 @@ export class TutorialSystem extends System {
   reset(): void {
     this.currentHint = null;
     this.hintQueue = [];
+    clearShownHints();
     this.queueHint("start");
   }
 
@@ -73,16 +83,14 @@ export class TutorialSystem extends System {
     }
   }
 
-  setShopOpened(opened: boolean): void {
-    if (opened) {
-      if (this.currentHint?.trigger === "firstMoney") {
-        this.clearCurrentHint();
-      }
-      this.queueHint("shopOpened");
+  private onShopOpened(): void {
+    if (this.currentHint?.trigger === "firstMoney") {
+      this.clearCurrentHint();
     }
+    this.queueHint("shopOpened");
   }
 
-  notifyPurchase(): void {
+  private onPurchase(): void {
     if (this.currentHint?.trigger === "shopOpened") {
       this.clearCurrentHint();
     }

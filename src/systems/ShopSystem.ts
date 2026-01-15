@@ -17,8 +17,7 @@ import { gameState, resetGameState } from "../game/GameState";
 import { soundManager } from "../audio/SoundManager";
 import { saveGame, clearSaveData, spawnEntities } from "../game/SaveManager";
 import { clearAllEntities } from "../ecs/Component";
-import type { ClickSystem } from "./ClickSystem";
-import { TutorialSystem } from "./TutorialSystem";
+import { eventBus } from "../events/EventBus";
 
 const TILE_SIZE = 64;
 const TILE_GAP = 80;
@@ -44,7 +43,7 @@ export class ShopSystem extends System {
 
   private setOpen(open: boolean): void {
     if (open && !this._isOpen) {
-      this.tutorialSystem?.setShopOpened(true);
+      eventBus.emit("shopOpened");
     }
     this._isOpen = open;
   }
@@ -56,22 +55,13 @@ export class ShopSystem extends System {
   private buttonY: number = 0;
   private mouseX: number = 0;
   private mouseY: number = 0;
-  private clickSystem: ClickSystem | null = null;
-  private tutorialSystem: TutorialSystem | null = null;
+  private isHoveringCircle: boolean = false;
   private lastTileCalcWidth: number = 0;
   private lastTileCalcHeight: number = 0;
   private flashTimers = new Map<UpgradeId, number>();
   private maxedTimers = new Map<UpgradeId, number>();
   private readonly FLASH_DURATION = 300;
   private readonly MAXED_EFFECT_DURATION = 1000;
-
-  setClickSystem(clickSystem: ClickSystem): void {
-    this.clickSystem = clickSystem;
-  }
-
-  setTutorialSystem(tutorialSystem: TutorialSystem): void {
-    this.tutorialSystem = tutorialSystem;
-  }
 
   constructor(game: Game) {
     super(game);
@@ -86,6 +76,11 @@ export class ShopSystem extends System {
     });
     window.addEventListener("resize", this.handleResize);
     this.updatePositions();
+    
+    eventBus.on("circleHoverChanged", ({ isHovering }) => {
+      this.isHoveringCircle = isHovering;
+      this.updateCursor();
+    });
   }
 
   private handleTouchStart = (e: TouchEvent): void => {
@@ -154,7 +149,7 @@ export class ShopSystem extends System {
         this.flashTimers.set(this.hoveredUpgrade.id, this.FLASH_DURATION);
         soundManager.play("purchase");
 
-        this.tutorialSystem?.notifyPurchase();
+        eventBus.emit("upgradePurchased");
 
         if (isUpgradeMaxed(this.hoveredUpgrade.id)) {
           this.triggerMaxedEffect(this.hoveredUpgrade.id);
@@ -175,7 +170,7 @@ export class ShopSystem extends System {
     resetGameState();
     initializeUpgrades();
     spawnEntities();
-    this.tutorialSystem?.reset();
+    eventBus.emit("gameReset");
     this.setOpen(false);
   }
 
@@ -232,11 +227,10 @@ export class ShopSystem extends System {
   }
 
   private updateCursor(): void {
-    const isHoveringCircle = this.clickSystem?.isHoveringCircle ?? false;
     if (
       this.isButtonHovered ||
       this.hoveredUpgrade ||
-      isHoveringCircle ||
+      this.isHoveringCircle ||
       this.isResetButtonHovered
     ) {
       this.game.canvas.style.cursor = "pointer";

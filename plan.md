@@ -14,6 +14,16 @@ An incremental clicker game with ECS architecture. Single game screen with skill
 - **Components**: Data-only classes (Position, Health, Velocity, Clickable, Visual, etc.)
 - **Systems**: Logic processors (RenderSystem, ClickSystem, CollisionSystem, etc.)
 
+### Event Bus
+
+Systems communicate through a typed event bus (`src/events/EventBus.ts`) to stay decoupled. Events describe what happened:
+
+- `circleClicked` - User clicked on a circle (triggers floating text + click particles)
+- `circleCollided` - Ball hit a circle (triggers floating text + hit particles)
+- `circleKilled` - Circle health reached zero (triggers death particles + bonus text + screen shake)
+- `shopOpened` / `upgradePurchased` / `gameReset` - Tutorial triggers
+- `circleHoverChanged` - Cursor state updates
+
 ### Core Modules
 
 ```
@@ -23,6 +33,8 @@ src/
 │   ├── entity.ts        # Entity manager
 │   ├── component.ts     # Component definitions
 │   └── system.ts        # Base system class
+├── events/
+│   └── EventBus.ts      # Typed event bus for system communication
 ├── systems/
 │   ├── RenderSystem.ts
 │   ├── ClickSystem.ts

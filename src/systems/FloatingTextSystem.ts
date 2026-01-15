@@ -1,4 +1,6 @@
 import { System } from "../ecs/System";
+import type { Game } from "../game/Game";
+import { eventBus } from "../events/EventBus";
 
 interface FloatingText {
   x: number;
@@ -28,7 +30,7 @@ function easeOutBounce(x: number): number {
   }
 }
 
-export function spawnFloatingText(
+function spawnFloatingText(
   x: number,
   y: number,
   text: string,
@@ -47,6 +49,20 @@ export function spawnFloatingText(
 }
 
 export class FloatingTextSystem extends System {
+  constructor(game: Game) {
+    super(game);
+    eventBus.on("circleClicked", ({ circleX, circleY, damage }) => {
+      spawnFloatingText(circleX, circleY, `+$${damage}`, "#ffd700");
+    });
+    eventBus.on("circleCollided", ({ circleX, circleY, circleRadius, damage }) => {
+      spawnFloatingText(circleX, circleY - circleRadius - 10, `+$${damage}`, "#ffdd44");
+    });
+    eventBus.on("circleKilled", ({ x, y, bonusMoney }) => {
+      if (bonusMoney > 0) {
+        spawnFloatingText(x, y - 40, `+$${bonusMoney} BONUS!`, "#00ff88");
+      }
+    });
+  }
   update(dt: number): void {
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
       const ft = floatingTexts[i];

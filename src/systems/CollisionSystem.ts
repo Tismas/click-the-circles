@@ -3,10 +3,9 @@ import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import type { Entity } from "../ecs/Entity";
 import { gameState } from "../game/GameState";
 import { getBallDamage } from "../game/Upgrades";
-import { spawnFloatingText } from "./FloatingTextSystem";
-import { spawnBallHitParticles } from "./ParticleSystem";
 import { soundManager } from "../audio/SoundManager";
 import { getHealthScale } from "../utils/healthScale";
+import { eventBus } from "../events/EventBus";
 
 const BALL_RADIUS = 15;
 
@@ -60,19 +59,19 @@ export class CollisionSystem extends System {
             health.current -= damage;
             gameState.money += damage;
 
-            spawnFloatingText(
-              circlePos.x,
-              circlePos.y - circleRadius - 10,
-              `+$${damage}`,
-              "#ffdd44"
-            );
-
             const nx = dx / distance;
             const ny = dy / distance;
 
             const collisionX = circlePos.x + nx * circleRadius;
             const collisionY = circlePos.y + ny * circleRadius;
-            spawnBallHitParticles(collisionX, collisionY);
+            eventBus.emit("circleCollided", {
+              circleX: circlePos.x,
+              circleY: circlePos.y,
+              circleRadius,
+              collisionX,
+              collisionY,
+              damage
+            });
             soundManager.play("ballHit");
 
             const dotProduct = ballVel.x * nx + ballVel.y * ny;

@@ -4,15 +4,14 @@ import type { Entity } from "../ecs/Entity";
 import type { Game } from "../game/Game";
 import { gameState } from "../game/GameState";
 import { getClickDamage, getRadiusMulti } from "../game/Upgrades";
-import { spawnFloatingText } from "./FloatingTextSystem";
-import { spawnClickParticles } from "./ParticleSystem";
 import { soundManager } from "../audio/SoundManager";
 import { getUpgradeLevel } from "../game/Upgrades";
 import { getHealthScale } from "../utils/healthScale";
+import { eventBus } from "../events/EventBus";
 
 export class ClickSystem extends System {
   private hasClick: boolean = false;
-  isHoveringCircle: boolean = false;
+  private isHoveringCircle: boolean = false;
   private isHolding: boolean = false;
   private mouseX: number = 0;
   private mouseY: number = 0;
@@ -105,8 +104,7 @@ export class ClickSystem extends System {
 
       if (damage > 0) {
         gameState.money += damage;
-        spawnFloatingText(pos.x, pos.y, `+$${damage}`, "#ffd700");
-        spawnClickParticles(x, y);
+        eventBus.emit("circleClicked", { circleX: pos.x, circleY: pos.y, clickX: x, clickY: y, damage });
         soundManager.play("click");
       }
     }
@@ -116,7 +114,11 @@ export class ClickSystem extends System {
 
   private updateHoverState(): void {
     const hovered = this.getHoveredEntities(this.mouseX, this.mouseY);
-    this.isHoveringCircle = hovered.length > 0;
+    const newHoverState = hovered.length > 0;
+    if (newHoverState !== this.isHoveringCircle) {
+      this.isHoveringCircle = newHoverState;
+      eventBus.emit("circleHoverChanged", { isHovering: newHoverState });
+    }
   }
 
   private getHoveredEntities(x: number, y: number): Entity[] {

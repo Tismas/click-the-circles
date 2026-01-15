@@ -1,11 +1,10 @@
 import { System } from "../ecs/System";
 import { getEntitiesWithComponents, getComponent } from "../ecs/Component";
 import { gameState } from "../game/GameState";
-import { spawnFloatingText } from "./FloatingTextSystem";
-import { spawnDeathParticles } from "./ParticleSystem";
 import { soundManager } from "../audio/SoundManager";
 import { getRandomCirclePosition } from "../utils/spawn";
 import { getUpgradeLevel } from "../game/Upgrades";
+import { eventBus } from "../events/EventBus";
 
 export class CircleLifecycleSystem extends System {
   update(_dt: number): void {
@@ -30,19 +29,12 @@ export class CircleLifecycleSystem extends System {
         
         if (bonusMoney > 0) {
           gameState.money += bonusMoney;
-          spawnFloatingText(
-            pos.x,
-            pos.y - 40,
-            `+$${bonusMoney} BONUS!`,
-            "#00ff88"
-          );
         }
 
         if (circle) {
-          spawnDeathParticles(pos.x, pos.y, circle.color);
+          eventBus.emit("circleKilled", { x: pos.x, y: pos.y, color: circle.color, bonusMoney });
         }
         soundManager.play("death");
-        this.game.shake(8, 200);
 
         const newMax = Math.floor(health.max * 1.1);
         health.max = newMax;
