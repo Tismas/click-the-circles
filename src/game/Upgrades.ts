@@ -556,7 +556,7 @@ function calculatePositions(inputs: UpgradeInput[]): UpgradeDefinition[] {
 
   const siblingGroups = new Map<string, UpgradeDefinition[]>();
   for (const def of result) {
-    const key = `${def.branch}-${def.position}-${def.parent ?? "root"}`;
+    const key = `${def.branch}-${def.position}`;
     const group = siblingGroups.get(key) ?? [];
     group.push(def);
     siblingGroups.set(key, group);
