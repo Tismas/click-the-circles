@@ -9,6 +9,17 @@ import {
   canAffordUpgrade,
   purchaseUpgrade,
   initializeUpgrades,
+  getClickDamage,
+  getKillBonusPercent,
+  getRadiusMulti,
+  getBallDamage,
+  getBallSpeedMulti,
+  getBlueBallDamage,
+  getBlueBallSpeedMulti,
+  getGreenBallDamage,
+  getGreenBallSpeedMulti,
+  getChainLightningCount,
+  getChainLightningDamagePercent,
   type UpgradeDefinition,
   type UpgradeBranch,
   type UpgradeId,
@@ -605,9 +616,12 @@ export class ShopSystem extends System {
       maxWidth - padding * 2
     );
 
+    const currentStat = this.getCurrentStatText(def.id);
+    const hasCurrentStat = currentStat !== null;
+
     const titleLineCount = 1;
     const descLineCount = descriptionLines.length;
-    const statsLineCount = 2;
+    const statsLineCount = hasCurrentStat ? 3 : 2;
 
     const tooltipHeight =
       padding * 2 +
@@ -657,6 +671,13 @@ export class ShopSystem extends System {
     }
     y += sectionGap;
 
+    if (hasCurrentStat) {
+      ctx.fillStyle = "#88ccff";
+      ctx.fillText(currentStat, tooltipX + padding, y);
+      y += lineHeight;
+      ctx.fillStyle = "#cccccc";
+    }
+
     ctx.fillText(
       `Level: ${getUpgradeLevel(def.id)}/${def.maxLevel}`,
       tooltipX + padding,
@@ -670,6 +691,62 @@ export class ShopSystem extends System {
       ctx.fillText("MAXED", tooltipX + padding, y);
     } else {
       ctx.fillText(`Cost: ${formatMoney(getUpgradeCost(def.id))}`, tooltipX + padding, y);
+    }
+  }
+
+  private getCurrentStatText(id: UpgradeId): string | null {
+    switch (id) {
+      case "clickDamage":
+      case "clickDamage2":
+        return `Current: ${getClickDamage()} damage`;
+      case "killBonus":
+      case "killBonus2":
+        return `Current: ${Math.round(getKillBonusPercent() * 100)}% bonus`;
+      case "clickRadius":
+        return `Current: ${Math.round(getRadiusMulti() * 100)}% radius`;
+      case "ballDamage":
+        return `Current: ${getBallDamage()} damage`;
+      case "ballSpeed":
+        return `Current: ${Math.round(getBallSpeedMulti() * 100)}% speed`;
+      case "blueBallDamage":
+        return `Current: ${getBlueBallDamage()} damage`;
+      case "blueBallSpeed":
+        return `Current: ${Math.round(getBlueBallSpeedMulti() * 100)}% speed`;
+      case "greenBallDamage":
+        return `Current: ${getGreenBallDamage()} damage`;
+      case "greenBallSpeed":
+        return `Current: ${Math.round(getGreenBallSpeedMulti() * 100)}% speed`;
+      case "chainLightningCount":
+        return `Current: ${getChainLightningCount()} targets`;
+      case "chainLightningDamage":
+        return `Current: ${Math.round(getChainLightningDamagePercent() * 100)}% damage`;
+      case "moreCircles":
+      case "moreCircles2":
+      case "moreCircles3":
+      case "moreCircles4": {
+        const total = 1 + getUpgradeLevel("moreCircles") + getUpgradeLevel("moreCircles2") + getUpgradeLevel("moreCircles3") + getUpgradeLevel("moreCircles4");
+        return `Current: ${total} circles`;
+      }
+      case "whiteBallCount": {
+        const count = getUpgradeLevel("whiteBall") + getUpgradeLevel("whiteBallCount");
+        return `Current: ${count} balls`;
+      }
+      case "tickSpeed":
+      case "tickSpeed2": {
+        const ticks = 20 - getUpgradeLevel("tickSpeed") - getUpgradeLevel("tickSpeed2");
+        return `Current: ${ticks} ticks`;
+      }
+      case "valueUpgrade":
+      case "valueUpgrade2": {
+        const value = 1 + getUpgradeLevel("valueUpgrade") + getUpgradeLevel("valueUpgrade2");
+        return `Current: $${value}/tick`;
+      }
+      case "holdSpeed": {
+        const ticks = 20 - getUpgradeLevel("holdSpeed");
+        return `Current: ${ticks} ticks`;
+      }
+      default:
+        return null;
     }
   }
 
